@@ -1,5 +1,6 @@
 ﻿using Domain.Entites.AppointmentModule;
 using Domain.Entites.CaseModule;
+using Domain.Entites.IdentityModule;
 using Domain.Entites.PatientModule;
 using Domain.Entites.ReportModule;
 using Domain.Entites.StudentModule;

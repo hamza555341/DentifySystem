@@ -1,4 +1,5 @@
-﻿using Domain.Interfaces;
+﻿using Domain.Entites.IdentityModule;
+using Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Persistence.IdentityData.IdentityModule;

@@ -19,8 +19,8 @@ namespace Persistence.Data.Configurations
                    .IsRequired()
                    .HasMaxLength(500);
 
-            builder.Property(i => i.ImageUrl)
-                   .HasConversion<int>(); 
+            //builder.Property(i => i.ImageUrl)
+            //       .HasConversion<int>(); 
 
             builder.HasOne(i => i.Report)
                    .WithMany(r => r.Images)
