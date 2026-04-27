@@ -1,0 +1,29 @@
+﻿using Shared.CommonResult;
+using Shared.DTOs.CaseDtos;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Service.Abstraction
+{
+    public interface ICaseService
+    {
+        Task<Result<CaseResponseDTO>> CreateCaseAsync(string userId, CreateCaseDTO dto);
+
+        Task<Result<IEnumerable<CaseResponseDTO>>> GetAvailableCasesAsync();
+
+        Task<Result<IEnumerable<CaseResponseDTO>>> GetPatientCasesAsync(string userId);
+
+        Task<Result<IEnumerable<CaseResponseDTO>>> GetStudentCasesAsync(string userId);
+
+        Task<Result<CaseResponseDTO>> GetCaseByIdAsync(int caseId);
+
+        Task<Result<CaseResponseDTO>> AcceptCaseAsync(int caseId, string userId);
+
+        Task<Result> ApproveCaseAsync(int caseId);
+
+        Task<Result> RejectCaseAsync(int caseId);
+    }
+}
