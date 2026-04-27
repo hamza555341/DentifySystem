@@ -19,10 +19,7 @@ namespace Domain.Entites.ReportModule
 
         public string TreatmentPlan { get; set; } = null!;
 
-        public string Notes { get; set; } = null!;
-
-        public DateTime CreatedAt { get; set; }
-
+        public string? Notes { get; set; } = null!;
         public Case Case { get; set; } = null!;
 
         public Student Student { get; set; } = null!;

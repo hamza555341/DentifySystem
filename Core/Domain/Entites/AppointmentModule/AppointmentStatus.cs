@@ -8,9 +8,10 @@ namespace Domain.Entites.AppointmentModule
 {
     public enum AppointmentStatus
     {
-        Pending = 0,
+        proposed = 0,
         Confirmed = 1,
         Cancelled = 2,
-        Completed = 3
+        Rejected = 3,
+        Completed=4 
     }
 }

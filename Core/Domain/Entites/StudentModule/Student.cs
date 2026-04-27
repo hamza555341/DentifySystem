@@ -22,7 +22,7 @@ namespace Domain.Entites.StudentModule
 
         public int AcademicYear { get; set; }
 
-        public bool IsApproved { get; set; } = true;
+        public bool IsApproved { get; set; } = false;
 
         public string? ProfileImageUrl { get; set; }
 

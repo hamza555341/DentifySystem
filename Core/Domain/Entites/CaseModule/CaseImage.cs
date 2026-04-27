@@ -12,7 +12,7 @@ namespace Domain.Entites.CaseModule
 
         public string ImageUrl { get; set; } = null!;
 
-        public string ImageType { get; set; } = null!;
+        public string? ImageType { get; set; } = null!;
 
         public Case Case { get; set; } = null!;
 

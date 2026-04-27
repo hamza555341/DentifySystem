@@ -18,9 +18,9 @@ namespace Domain.Entites.AppointmentModule
 
         public int PatientId { get; set; }
 
-        public DateTime AppointmentDate { get; set; }
+        public DateTimeOffset AppointmentDate { get; set; }
 
-        public AppointmentStatus Status { get; set; } =AppointmentStatus.Pending;
+        public AppointmentStatus Status { get; set; } =AppointmentStatus.proposed;
 
         public string Location { get; set; } = null!;
 
