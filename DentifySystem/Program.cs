@@ -1,12 +1,27 @@
 
+using DentifySystem.BackgroundJobs;
 using DentifySystem.Extentions;
+using Domain.Entites.IdentityModule;
 using Domain.Interfaces;
+using Hangfire;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Persistence.DbContexts;
 using Persistence.IdentityData.DataSeed;
 using Persistence.IdentityData.IdentityModule;
+using Persistence.Repositories;
+using Persistence.Services;
+using Service;
+using Service.Abstraction;
+using Service.MappingProfile;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
 using System.Threading.Tasks;
+using IAuthenticationService = Service.Abstraction.IAuthenticationService;
 
 namespace DentifySystem
 {
@@ -21,8 +36,33 @@ namespace DentifySystem
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                    Description = "Write the token here as follows : Bearer {your token}"
+                });
 
+                c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+            });
 
 
             builder.Services.AddDbContext<DentifyDbContext>(options =>
@@ -30,13 +70,66 @@ namespace DentifySystem
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
 
-            builder.Services.AddIdentityCore<ApplicationUser>()
-                .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<DentifyDbContext>();
+            //builder.Services.AddIdentityCore<ApplicationUser>()
+            //    .AddRoles<IdentityRole>()
+            //    .AddEntityFrameworkStores<DentifyDbContext>();
+
+
+            builder.Services.AddHangfire(config =>
+            config.UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            builder.Services.AddHangfireServer();
+
+
+            builder.Services.AddAutoMapper(typeof(ServiceAssemplyRefrence).Assembly);
+
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+                            .AddEntityFrameworkStores<DentifyDbContext>()
+                            .AddDefaultTokenProviders();
 
             builder.Services.AddScoped<IDataIntializer, DataIntializer>();
+            builder.Services.AddScoped<ITokenService, TokenService>();
+            builder.Services.AddScoped<IAuthenticationService,Service.AuthenticationService>();
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<IAttachmentService,AttachmentService>();
+            builder.Services.AddScoped<ICaseService,CaseService>();
+            builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddScoped<IStudentRatingService,StudentRatingService>();
+            builder.Services.AddScoped<IBackgroundJobService, HangfireJobService>();
+            builder.Services.AddScoped<IAppointmentService,AppointmentService>();
+
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+              .AddJwtBearer(options =>
+              {
+                  options.SaveToken = true;
+                  options.TokenValidationParameters = new TokenValidationParameters
+                  {
+                      ValidateIssuer = true,
+                      ValidateAudience = true,
+                      ValidateLifetime = true,
+                      ValidateIssuerSigningKey = true,
+
+                      ValidIssuer = builder.Configuration["JWTOptions:Issuer"],
+                      ValidAudience = builder.Configuration["JWTOptions:Audience"],
+                      IssuerSigningKey = new SymmetricSecurityKey(
+              Encoding.UTF8.GetBytes(builder.Configuration["JWTOptions:SecretKey"]!)
+          ),
+                  };
+              });
+
+
+
+
 
             var app = builder.Build();
+
+            app.UseHangfireDashboard("/hangfire");
+
 
             #region UpdateDb_Pending_Migrations And DataSeeding
 
@@ -56,8 +149,10 @@ namespace DentifySystem
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseStaticFiles();   
 
             app.MapControllers();
 
