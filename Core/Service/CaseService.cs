@@ -32,6 +32,7 @@ namespace Service
             _configuration = configuration;
         }
 
+        #region paitient
         public async Task<Result<CaseResponseDTO>> CreateCaseAsync(string userId, CreateCaseDTO dto)
         {
             var patient = await _unitOfWork.GetRepository<Patient, int>()
@@ -45,7 +46,7 @@ namespace Service
 
             var caseEntity = new Case
             {
-                PatientId = patient.Id, 
+                PatientId = patient.Id,
                 Condition = dto.Disease,
                 Description = dto.Description,
                 City = dto.City,
@@ -65,7 +66,7 @@ namespace Service
                 {
                     CaseId = caseEntity.Id,
                     ImageUrl = path,
-                    ImageType= "fsdfsdf"
+                    ImageType = "fsdfsdf"
                 });
             }
 
@@ -74,7 +75,7 @@ namespace Service
             var result = await _unitOfWork.GetRepository<Case, int>()
                 .GetByIdAsync(new CaseWithImagesSpecification(caseEntity.Id));
 
-  
+
             var baseUrl = _configuration["URLs:BaseURL"];
             var caseResponse = _mapper.Map<CaseResponseDTO>(result!);
 
@@ -86,10 +87,10 @@ namespace Service
 
         }
 
-        public async Task<Result<IEnumerable<CaseResponseDTO>>> GetAvailableCasesAsync()
+        public async Task<Result<IEnumerable<CaseResponseDTO>>> GetAvailableCasesAsync(string? city)
         {
             var cases = await _unitOfWork.GetRepository<Case, int>()
-                .GetAllAsync(new AvailableCasesSpecification());
+                .GetAllAsync(new AvailableCasesSpecification(city));
 
             var baseUrl = _configuration["URLs:BaseURL"];
 
@@ -200,9 +201,9 @@ namespace Service
             caseRepo.Update(caseEntity);
             await _unitOfWork.SaveChangesAsync();
 
-             var CaseResponse= _mapper.Map<CaseResponseDTO>(caseEntity);
+            var CaseResponse = _mapper.Map<CaseResponseDTO>(caseEntity);
 
-             return Result<CaseResponseDTO>.Ok(CaseResponse);
+            return Result<CaseResponseDTO>.Ok(CaseResponse);
         }
 
         public async Task<Result> ApproveCaseAsync(int caseId)
@@ -236,6 +237,9 @@ namespace Service
             await _unitOfWork.SaveChangesAsync();
 
             return Result.Ok();
-        }
+        } 
+        #endregion
+
+
     }
 }

@@ -40,10 +40,10 @@ namespace Presentation.Controllers
 
         // Student
         [HttpGet("available")]
-        [Authorize(Roles = "Student")]
-        public async Task<ActionResult<IEnumerable<CaseResponseDTO>>> GetAvailableCases()
+        //[Authorize(Roles = "Student")]
+        public async Task<ActionResult<IEnumerable<CaseResponseDTO>>> GetAvailableCases(string? city)
         {
-            return HandleResult(await _caseService.GetAvailableCasesAsync());
+            return HandleResult(await _caseService.GetAvailableCasesAsync( city));
         }
 
         [HttpGet("assigned")]

@@ -9,8 +9,8 @@ namespace Service.Specifications.CaseSpecifications
 {
     public class AvailableCasesSpecification : BaseSpecification<Case, int>
     {
-        public AvailableCasesSpecification()
-            : base(c => c.Status == CaseStatus.Approved && c.AssignedStudentId == null)
+        public AvailableCasesSpecification(string?city)
+            : base(c =>c.Status == CaseStatus.Approved && c.AssignedStudentId == null && (string.IsNullOrEmpty(city)|| c.City.ToLower() == city!.ToLower()))
         {
             AddInclude(c => c.Images);
             AddInclude(c => c.Patient);
