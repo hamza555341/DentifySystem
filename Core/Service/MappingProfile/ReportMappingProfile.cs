@@ -14,8 +14,20 @@ namespace Service.MappingProfile
         public ReportMappingProfile()
         {
             CreateMap<Report, ReportResponseDTO>()
-                .ForMember(d => d.StudentName, o => o.MapFrom(s => s.Student.FullName))
-                .ForMember(d => d.Images, o => o.Ignore());
+
+             .ForMember(d => d.StudentName,
+                 o => o.MapFrom(s =>
+                     s.TreatmentRequest.Student.ApplicationUser.DisplayName))
+
+             .ForMember(d => d.Images,
+                 o => o.MapFrom(s =>
+                     s.Images.Select(i => i.ImageUrl)))
+
+             .ForMember(d => d.TreatmentRequestId,
+                 o => o.MapFrom(s => s.TreatmentRequestId))
+
+             .ForMember(d => d.CaseId,
+                 o => o.MapFrom(s => s.TreatmentRequest.CaseId));
         }
     }
 }

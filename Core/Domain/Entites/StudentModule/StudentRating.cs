@@ -1,5 +1,6 @@
 ﻿using Domain.Entites.CaseModule;
 using Domain.Entites.PatientModule;
+using Domain.Entites.TreatmentRequestModule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,10 +12,9 @@ namespace Domain.Entites.StudentModule
     public class StudentRating:BaseEntity<int>
     {
 
+        public int TreatmentRequestId { get; set; }
+        public TreatmentRequest TreatmentRequest { get; set; } = null!;
 
-        public int CaseId { get; set; }
-
-        public Case Case { get; set; } = null!;
         public int StudentId { get; set; }
 
         public int PatientId { get; set; }

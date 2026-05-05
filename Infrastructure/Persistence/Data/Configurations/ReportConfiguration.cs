@@ -26,15 +26,10 @@ namespace Persistence.Data.Configurations
             builder.Property(r => r.Notes)
                    .HasMaxLength(2000);
 
-            builder.HasOne(r => r.Case)
-                   .WithMany(c=>c.Reports)
-                   .HasForeignKey(r => r.CaseId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(x => x.TreatmentRequest)
+                .WithOne(x => x.Report)
+                .HasForeignKey<Report>(x => x.TreatmentRequestId);
 
-            builder.HasOne(r => r.Student)
-                   .WithMany(s => s.Reports)
-                   .HasForeignKey(r => r.StudentId)
-                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

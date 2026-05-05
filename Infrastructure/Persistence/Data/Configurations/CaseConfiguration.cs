@@ -1,4 +1,5 @@
 ﻿using Domain.Entites.CaseModule;
+using Domain.Entites.TreatmentRequestModule;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -15,7 +16,7 @@ namespace Persistence.Data.Configurations
         {
             builder.ToTable("Cases");
 
-            builder.Property(c => c.Description)
+            builder.Property(c => c.Disease)
                    .IsRequired()
                    .HasMaxLength(200);
 
@@ -29,16 +30,25 @@ namespace Persistence.Data.Configurations
 
             builder.Property(c => c.AiAnalysisResult)
                    .HasMaxLength(4000);
+            builder.Property(c => c.Status)
+                .HasConversion<int>();
 
             builder.HasOne(c => c.Patient)
                    .WithMany(p => p.Cases)
                    .HasForeignKey(c => c.PatientId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(c => c.AssignedStudent)
-                   .WithMany(s => s.AcceptedCases)
-                   .HasForeignKey(c => c.AssignedStudentId)
-                   .OnDelete(DeleteBehavior.SetNull);
+            builder.HasMany(c => c.TreatmentRequests)
+                   .WithOne(t=>t.Case)
+                   .HasForeignKey(t=>t.CaseId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(x=>x.Images)
+                   .WithOne(i=>i.Case)
+                   .HasForeignKey(i=>i.CaseId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+
         }
     }
 }

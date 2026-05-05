@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Shared.DTOs.AppointmentDtos;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,6 +53,19 @@ namespace Shared.CommonResult
             return new Result(errors);
         }
 
+        public static Result<IEnumerable<AppointmentResponseDTO>> Fail(Error error)
+        {
+            throw new NotImplementedException();
+        }
+        public static implicit operator Result(Error error)
+        {
+            return Failure(error);
+        }
+
+        public static implicit operator Result(List<Error> errors)
+        {
+            return Failure(errors);
+        }
     }
 
     public class Result<TValue> : Result

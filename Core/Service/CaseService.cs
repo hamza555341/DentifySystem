@@ -2,6 +2,7 @@
 using Domain.Entites.CaseModule;
 using Domain.Entites.PatientModule;
 using Domain.Entites.StudentModule;
+using Domain.Entites.TreatmentRequestModule;
 using Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Service.Abstraction;
@@ -47,7 +48,7 @@ namespace Service
             var caseEntity = new Case
             {
                 PatientId = patient.Id,
-                Condition = dto.Disease,
+                Disease = dto.Disease,
                 Description = dto.Description,
                 City = dto.City,
                 Status = CaseStatus.Pending,
@@ -86,6 +87,7 @@ namespace Service
             return Result<CaseResponseDTO>.Ok(caseResponse);
 
         }
+
 
         public async Task<Result<IEnumerable<CaseResponseDTO>>> GetAvailableCasesAsync(string? city)
         {
@@ -175,35 +177,49 @@ namespace Service
             return Result<CaseResponseDTO>.Ok(dto);
         }
 
-        public async Task<Result<CaseResponseDTO>> AcceptCaseAsync(int caseId, string userId)
+        public async Task<Result> AcceptTreatmentRequestAsync(int requestId, string patientUserId)
         {
-            var student = await _unitOfWork.GetRepository<Student, int>()
-                .GetByIdAsync(new StudentByUserIdSpecification(userId));
+            var patient = await _unitOfWork.GetRepository<Patient, int>()
+                .GetByIdAsync(new PatientByUserIdSpecification(patientUserId));
 
-            if (student is null)
-                return Error.NotFound("Student.NotFound");
+            if (patient is null)
+                return Result.Failure(Error.NotFound("Patient.NotFound"));
 
-            var caseRepo = _unitOfWork.GetRepository<Case, int>();
-            var caseEntity = await caseRepo.GetByIdAsync(new CaseWithImagesSpecification(caseId));
+            var requestRepo = _unitOfWork.GetRepository<TreatmentRequest, int>();
 
-            if (caseEntity is null)
-                return Error.NotFound("Case.NotFound");
+            var request = await requestRepo.GetByIdAsync(
+                new TreatmentRequestWithDetailsSpecification(requestId));
 
-            if (caseEntity.Status != CaseStatus.Approved)
-                return Error.Validation("Invalid.Status", "Case is not available for acceptance");
+            if (request is null)
+                return Result.Failure(Error.NotFound("Request.NotFound"));
 
-            if (caseEntity.AssignedStudentId is not null)
-                return Error.Validation("Case.AlreadyAssigned", "Case already taken");
+            var caseEntity = request.Case;
 
-            caseEntity.AssignedStudentId = student.Id;
+            if (caseEntity.PatientId != patient.Id)
+                return Result.Failure(Error.Unauthorized("Not.Allowed"));
+
+            if (request.Status != TreatmentRequestStatus.Pending)
+                return Result.Failure(Error.Validation("Invalid.Status", "Request already handled"));
+
+            // ✅ 1. قبول الطلب
+            request.Status = TreatmentRequestStatus.Accepted;
+
+            // ✅ 2. رفض باقي الطلبات
+            var allRequests = caseEntity.TreatmentRequests;
+
+            foreach (var r in allRequests)
+            {
+                if (r.Id != request.Id)
+                    r.Status = TreatmentRequestStatus.Rejected;
+            }
+
+            // ✅ 3. تحديث حالة الكيس
             caseEntity.Status = CaseStatus.Assigned;
 
-            caseRepo.Update(caseEntity);
+            requestRepo.Update(request);
             await _unitOfWork.SaveChangesAsync();
 
-            var CaseResponse = _mapper.Map<CaseResponseDTO>(caseEntity);
-
-            return Result<CaseResponseDTO>.Ok(CaseResponse);
+            return Result.Ok();
         }
 
         public async Task<Result> ApproveCaseAsync(int caseId)

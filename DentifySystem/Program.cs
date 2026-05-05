@@ -1,6 +1,7 @@
 
 using DentifySystem.BackgroundJobs;
 using DentifySystem.Extentions;
+using DentifySystem.Hubs;
 using Domain.Entites.IdentityModule;
 using Domain.Interfaces;
 using Hangfire;
@@ -97,6 +98,8 @@ namespace DentifySystem
             builder.Services.AddScoped<IStudentRatingService,StudentRatingService>();
             builder.Services.AddScoped<IBackgroundJobService, HangfireJobService>();
             builder.Services.AddScoped<IAppointmentService,AppointmentService>();
+            builder.Services.AddScoped<ITreatmentRequestService, TreatmentRequestService>();
+            builder.Services.AddScoped<IChatService, ChatService>();
 
 
             builder.Services.AddAuthentication(options =>
@@ -113,17 +116,33 @@ namespace DentifySystem
                       ValidateAudience = true,
                       ValidateLifetime = true,
                       ValidateIssuerSigningKey = true,
-
                       ValidIssuer = builder.Configuration["JWTOptions:Issuer"],
                       ValidAudience = builder.Configuration["JWTOptions:Audience"],
                       IssuerSigningKey = new SymmetricSecurityKey(
-              Encoding.UTF8.GetBytes(builder.Configuration["JWTOptions:SecretKey"]!)
-          ),
+                          Encoding.UTF8.GetBytes(builder.Configuration["JWTOptions:SecretKey"]!)
+                      ),
+                  };
+
+                  
+                  options.Events = new JwtBearerEvents
+                  {
+                      OnMessageReceived = context =>
+                      {
+                          var accessToken = context.Request.Query["access_token"];
+                          var path = context.HttpContext.Request.Path;
+
+                          if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                          {
+                              context.Token = accessToken;
+                          }
+                          return Task.CompletedTask;
+                      }
                   };
               });
 
 
 
+            builder.Services.AddSignalR();
 
 
             var app = builder.Build();
@@ -151,6 +170,7 @@ namespace DentifySystem
 
             app.UseAuthentication();
             app.UseAuthorization();
+            app.MapHub<ChatHub>("/hubs/chat");
 
             app.UseStaticFiles();   
 

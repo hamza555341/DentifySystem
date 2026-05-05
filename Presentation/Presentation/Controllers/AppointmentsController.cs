@@ -65,15 +65,7 @@ namespace Presentation.Controllers
         }
 
 
-        [HttpGet("case/{caseId}")]
-        [Authorize]
-        public async Task<ActionResult<IEnumerable<AppointmentResponseDTO>>> GetCaseAppointments(int caseId)
-    
-        {
-            var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return HandleResult(
-                await _appointmentService.GetCaseAppointmentsAsync(caseId, UserId!));
-        }
+
 
 
 

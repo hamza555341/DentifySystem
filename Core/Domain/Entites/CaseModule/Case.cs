@@ -2,6 +2,7 @@
 using Domain.Entites.PatientModule;
 using Domain.Entites.ReportModule;
 using Domain.Entites.StudentModule;
+using Domain.Entites.TreatmentRequestModule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,9 +15,7 @@ namespace Domain.Entites.CaseModule
     {
         public int PatientId { get; set; }
 
-        public int? AssignedStudentId { get; set; }
-
-        public string Condition { get; set; } = null!;
+        public string Disease { get; set; } = null!;
 
         public string Description { get; set; } = null!;
 
@@ -28,14 +27,14 @@ namespace Domain.Entites.CaseModule
 
         public Patient Patient { get; set; } = null!;
 
-        public Student? AssignedStudent { get; set; }
-
         public ICollection<CaseImage> Images { get; set; } = new List<CaseImage>();
 
         public DateTime? LastUpdatedAt { get; set; }
-        public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
         public ICollection<Report> Reports { get; set; } = new List<Report>();
+
+        public ICollection<TreatmentRequest> TreatmentRequests { get; set; } = new List<TreatmentRequest>();
+
 
 
 

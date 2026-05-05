@@ -8,7 +8,7 @@ namespace Shared.DTOs.StudentRatingDtos
 {
     public class CreateRatingDTO
     {
-        public int CaseId { get; set; }
+        public int TreatmentRequestId { get; set; }
         public int Rating { get; set; }
         public string? Comment { get; set; }
     }

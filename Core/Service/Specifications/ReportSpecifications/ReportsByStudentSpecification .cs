@@ -10,10 +10,12 @@ namespace Service.Specifications.ReportSpecifications
     public class ReportsByStudentSpecification : BaseSpecification<Report, int>
     {
         public ReportsByStudentSpecification(int studentId)
-            : base(r => r.StudentId == studentId)
+            : base(r=>r.TreatmentRequest.StudentId==studentId)
         {
             AddInclude(r => r.Images);
-            AddInclude(r => r.Case);
+            AddInclude(x => x.TreatmentRequest);
+            AddInclude(x => x.TreatmentRequest.Student.ApplicationUser);
+            
             AddOrderByDesc(r => r.CreatedAt);
         }
     }

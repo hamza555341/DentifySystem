@@ -20,7 +20,7 @@ namespace Service.Abstraction
 
         Task<Result<CaseResponseDTO>> GetCaseByIdAsync(int caseId);
 
-        Task<Result<CaseResponseDTO>> AcceptCaseAsync(int caseId, string userId);
+        Task<Result> AcceptTreatmentRequestAsync(int requestId, string patientUserId);
 
         Task<Result> ApproveCaseAsync(int caseId);
 

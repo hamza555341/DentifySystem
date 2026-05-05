@@ -13,8 +13,8 @@ namespace Service.Specifications.ReportSpecifications
             : base(r => r.Id == reportId)
         {
             AddInclude(r => r.Images);
-            AddInclude(r => r.Student);
-            AddInclude(r => r.Case);
+            AddInclude(r => r.TreatmentRequest.Student.ApplicationUser);
+            AddInclude(r => r.TreatmentRequest.Case);
         }
     }
 }

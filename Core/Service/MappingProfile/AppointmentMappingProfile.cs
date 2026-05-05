@@ -14,16 +14,20 @@ namespace Service.MappingProfile
         public AppointmentMappingProfile()
         {
             CreateMap<Appointment, AppointmentResponseDTO>()
+
+                // Patient Name
                 .ForMember(d => d.PatientName,
-                    o => o.MapFrom(s => s.Patient.FullName))
+                    o => o.MapFrom(s => s.TreatmentRequest.Case.Patient.ApplicationUser.DisplayName))
 
+                // Student Name
                 .ForMember(d => d.StudentName,
-                    o => o.MapFrom(s => s.Student.FullName))
+                    o => o.MapFrom(s => s.TreatmentRequest.Student.ApplicationUser.DisplayName))
 
+                // Status
                 .ForMember(d => d.Status,
                     o => o.MapFrom(s => s.Status.ToString()));
 
-            // لو احتجت تحول Slot → Appointment (اختياري)
+            // Slot → Appointment
             CreateMap<ProposedSlotDTO, Appointment>()
                 .ForMember(d => d.AppointmentDate,
                     o => o.MapFrom(s => s.AppointmentDate))
@@ -31,8 +35,9 @@ namespace Service.MappingProfile
                 .ForMember(d => d.Location,
                     o => o.MapFrom(s => s.Location))
 
-                // دول هيتحددوا في السيرفيس مش من الـ DTO
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+                // الباقي يتحدد في السيرفيس
+                .ForAllMembers(opts =>
+                    opts.Condition((src, dest, srcMember) => srcMember != null));
         }
     }
 }

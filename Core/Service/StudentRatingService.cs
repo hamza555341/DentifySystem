@@ -2,9 +2,11 @@
 using Domain.Entites.CaseModule;
 using Domain.Entites.PatientModule;
 using Domain.Entites.StudentModule;
+using Domain.Entites.TreatmentRequestModule;
 using Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Service.Abstraction;
+using Service.Specifications;
 using Service.Specifications.CaseSpecifications;
 using Service.Specifications.StudentRatingSpecifications;
 using Shared.CommonResult;
@@ -48,7 +50,7 @@ namespace Service
             return new StudentAverageRatingDTO
             {
                 StudentId = studentId,
-                StudentName = student.FullName,
+                StudentName = student.ApplicationUser.DisplayName,
                 AverageRating = Average,
                 TotalRatings = RatingList.Count()
 
@@ -71,76 +73,60 @@ namespace Service
                 _mapper.Map<IEnumerable<RatingResponseDTO>>(ratings));
         }
 
-        public async Task<Result<RatingResponseDTO>> RateStudentAsync(string userId, CreateRatingDTO createRatingDTO)
+        public async Task<Result<RatingResponseDTO>> RateStudentAsync(string userId, CreateRatingDTO dto)
         {
-            if (createRatingDTO.Rating < 1 || createRatingDTO.Rating > 5)
-                return Error.Validation("Rating.Invalid", "Rating must be between 1 and 5");
+            if (dto.Rating < 1 || dto.Rating > 5)
+                return Error.Validation("Rating.Invalid");
 
-            var patient= await _unitOfWork.GetRepository<Patient,int>()
+            var patient = await _unitOfWork.GetRepository<Patient, int>()
                 .GetByIdAsync(new PatientByUserIdSpecification(userId));
 
             if (patient is null)
-                return Error.NotFound("Patient.NotFound", "Patient not found for the given user ID");
+                return Error.NotFound("Patient.NotFound");
 
+            var request = await _unitOfWork.GetRepository<TreatmentRequest, int>()
+                .GetByIdAsync(new TreatmentRequestWithDetailsSpecification(dto.TreatmentRequestId));
 
-            var caseEntity = await _unitOfWork.GetRepository<Case, int>()
-                .GetByIdAsync(createRatingDTO.CaseId);
+            if (request is null)
+                return Error.NotFound("Request.NotFound");
 
-             if (caseEntity is null)
-                return Error.NotFound("Case.NotFound", "Case not found for the given case ID");
+            if (request.Case.PatientId != patient.Id)
+                return Error.Unauthorized("Not.Allowed");
 
+            if (request.Status != TreatmentRequestStatus.Accepted ||
+                request.Case.Status != CaseStatus.Completed)
+                return Error.Validation("Case.NotCompleted");
 
-             if (caseEntity.PatientId != patient.Id)
-                return Error.Unauthorized("Unauthorized", "You are not authorized to rate this student");
+            // ❌ منع التكرار
+            var ratings = await _unitOfWork
+                .GetRepository<StudentRating, int>()
+                .GetAllAsync(new RatingByRequestSpecification(request.Id));
 
-            if (caseEntity.Status != CaseStatus.Completed)
-                return Error.Validation("Case.NotCompleted", "You can only rate a student for completed cases");
+            var hasRating = ratings.Any();
 
-            if (caseEntity.AssignedStudentId is null)
-                return Error.Validation("Case.NotAssigned", "No student assigned to this case");
+            if (hasRating)
+                return Error.Validation("Rating.Exists");
 
-            var studentId = caseEntity.AssignedStudentId.Value;
-
-            var student = await _unitOfWork.GetRepository<Student, int>()
-                .GetByIdAsync(studentId);
-
-            if (student is null)
-                return Error.NotFound("Student.NotFound");
-
-
-
-
-            var ExsitingRating = await _unitOfWork.GetRepository<StudentRating, int>()
-                                           .GetByIdAsync(new RatingByCaseAndPatientSpecification(createRatingDTO.CaseId, patient.Id));
-
-
-            if(ExsitingRating is not null)
-                return Error.Validation("Rating.Exists", "You have already rated this student for this case");
-
-            var RatingEntity = new StudentRating
+            var rating = new StudentRating
             {
-                CaseId = createRatingDTO.CaseId,
+                TreatmentRequestId = request.Id,
                 PatientId = patient.Id,
-                StudentId = studentId,
-                Rating = createRatingDTO.Rating,
-                Comment = createRatingDTO.Comment,
+                StudentId = request.StudentId,
+                Rating = dto.Rating,
+                Comment = dto.Comment,
                 CreatedAt = DateTime.UtcNow
-
             };
 
-         await _unitOfWork.GetRepository<StudentRating, int>().AddAsync(RatingEntity);
-         await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.GetRepository<StudentRating, int>().AddAsync(rating);
+            await _unitOfWork.SaveChangesAsync();
 
-            var RatingResult = await _unitOfWork.GetRepository<StudentRating, int>()
-                .GetByIdAsync(new RatingByCaseAndPatientSpecification(createRatingDTO.CaseId, patient.Id));
+            var result = await _unitOfWork.GetRepository<StudentRating, int>()
+                .GetByIdAsync(new RatingWithDetailsSpecification(rating.Id));
 
+            return Result<RatingResponseDTO>.Ok(_mapper.Map<RatingResponseDTO>(result));
+                
 
-            var responseDTO = _mapper.Map<RatingResponseDTO>(RatingResult);
-
-            return Result<RatingResponseDTO>.Ok(responseDTO);
-
-
-        }
+    }
 
 
 

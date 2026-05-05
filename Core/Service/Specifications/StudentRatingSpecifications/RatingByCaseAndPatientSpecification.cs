@@ -7,13 +7,18 @@ using System.Threading.Tasks;
 
 namespace Service.Specifications.StudentRatingSpecifications
 {
-    public class RatingByCaseAndPatientSpecification : BaseSpecification<StudentRating, int>
+    public class RatingByCaseAndPatientSpecification
+    : BaseSpecification<StudentRating, int>
     {
         public RatingByCaseAndPatientSpecification(int caseId, int patientId)
-            : base(r => r.CaseId == caseId && r.PatientId == patientId)
+            : base(r =>
+                r.TreatmentRequest.CaseId == caseId &&
+                r.PatientId == patientId)
         {
             AddInclude(r => r.Student);
             AddInclude(r => r.Patient);
+            AddInclude(r => r.TreatmentRequest);
+            AddInclude(r => r.TreatmentRequest.Case);
         }
     }
 }

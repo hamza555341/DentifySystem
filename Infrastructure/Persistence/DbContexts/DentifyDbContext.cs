@@ -1,9 +1,11 @@
 ﻿using Domain.Entites.AppointmentModule;
 using Domain.Entites.CaseModule;
+using Domain.Entites.ChatModule;
 using Domain.Entites.IdentityModule;
 using Domain.Entites.PatientModule;
 using Domain.Entites.ReportModule;
 using Domain.Entites.StudentModule;
+using Domain.Entites.TreatmentRequestModule;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -51,5 +53,7 @@ namespace Persistence.DbContexts
         public DbSet<ReportImage> ReportImages { get; set; }
         public DbSet<StudentRating> StudentRatings { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<TreatmentRequest> TreatmentRequests { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
     }
 }
