@@ -26,6 +26,17 @@ namespace Service.Abstraction
 
         Task<bool> CheckEmailAsync(string email);
 
+        Task<Result> ForgetPasswordAsync(ForgotPasswordDTO forgotPasswordDTO);  
+
+        Task<Result> ResetPasswordAsync(ResetPasswordDTO resetPasswordDTO);
+        Task<Result> ConfirmEmailAsync(ConfirmEmailDTO confirmEmailDTO);
+
+
+
+
+
+
+
     }
 
 }

@@ -87,6 +87,10 @@ namespace DentifySystem
                             .AddEntityFrameworkStores<DentifyDbContext>()
                             .AddDefaultTokenProviders();
 
+          builder.Services.Configure<EmailSettings>
+                (builder.Configuration.GetSection("EmailSettings"));
+       
+            builder.Services.AddScoped<IEmailService,EmailService>();
             builder.Services.AddScoped<IDataIntializer, DataIntializer>();
             builder.Services.AddScoped<ITokenService, TokenService>();
             builder.Services.AddScoped<IAuthenticationService,Service.AuthenticationService>();
