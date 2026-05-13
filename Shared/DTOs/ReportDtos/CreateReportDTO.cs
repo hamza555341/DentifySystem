@@ -9,7 +9,7 @@ namespace Shared.DTOs.ReportDtos
 {
     public class CreateReportDTO
     {
-        public int CaseId { get; set; }
+        public int TreatmentRequestId { get; set; }
         public string Diagnosis { get; set; } = null!;
         public string TreatmentPlan { get; set; } = null!;
         public string Notes { get; set; } = null!;

@@ -9,7 +9,7 @@ namespace Shared.DTOs.StudentRatingDtos
     public class RatingResponseDTO
     {
         public int Id { get; set; }
-        public int CaseId { get; set; }
+        public int TreatmentRequestId { get; set; }
         public string StudentName { get; set; } = null!;
         public string PatientName { get; set; } = null!;
         public int Rating { get; set; }

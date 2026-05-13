@@ -14,10 +14,26 @@ namespace Service.MappingProfile
         public RatingMappingProfile()
         {
             CreateMap<StudentRating, RatingResponseDTO>()
-                .ForMember(d => d.StudentName,
-                    o => o.MapFrom(s => s.Student.FullName))
-                .ForMember(d => d.PatientName,
-                    o => o.MapFrom(s => s.Patient.FullName));
+
+           .ForMember(d => d.StudentName,
+               o => o.MapFrom(s =>
+                   s.Student.ApplicationUser.DisplayName))
+
+           .ForMember(d => d.PatientName,
+               o => o.MapFrom(s =>
+                   s.Patient.ApplicationUser.DisplayName))
+
+           .ForMember(d => d.Rating,
+               o => o.MapFrom(s => s.Rating))
+
+           .ForMember(d => d.Comment,
+               o => o.MapFrom(s => s.Comment))
+
+           .ForMember(d => d.CreatedAt,
+               o => o.MapFrom(s => s.CreatedAt))
+
+           .ForMember(d => d.TreatmentRequestId,
+               o => o.MapFrom(s => s.TreatmentRequestId));
         }
     }
 

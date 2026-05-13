@@ -10,35 +10,51 @@ namespace Service.Abstraction
 {
     public interface IAppointmentService
     {
-        Task<Result<IEnumerable<AppointmentResponseDTO>>> ProposeAppointmentsAsync(string studentUserId, ProposeAppointmentsDTO dto);
-        // الطالب يقترح موعدين لنفس الـ Case
+        // =============================
+        // Student
+        // =============================
+        Task<Result<IEnumerable<AppointmentResponseDTO>>> ProposeAppointmentsAsync(
+            string studentUserId,
+            ProposeAppointmentsDTO dto);
+        // الطالب يقترح موعدين لنفس الـ TreatmentRequest
 
-        Task<Result> SelectAppointmentAsync(int appointmentId, string patientUserId);
-        // المريض يختار موعد → التاني يتكنسل تلقائي
 
-        Task<Result> RejectAllAppointmentsAsync(int caseId, string patientUserId);
-            
-        // المريض يرفض الاتنين → Status = Rejected
+        // =============================
+        // Patient Actions
+        // =============================
+        Task<Result> SelectAppointmentAsync(
+            int appointmentId,
+            string patientUserId);
+        // المريض يختار موعد → الباقي يتكنسل تلقائي
 
-        Task<Result<IEnumerable<AppointmentResponseDTO>>> GetCaseAppointmentsAsync( int caseId,string userId);
-           
-        // يجيب الموعدين المقترحين لحالة معينة
 
-        Task<Result<IEnumerable<AppointmentResponseDTO>>> GetPatientAppointmentsAsync(string patientUserId);
-            
+        Task<Result> RejectAllAppointmentsAsync(
+            int treatmentRequestId,
+            string patientUserId);
+        // المريض يرفض كل المقترحات
+
+
+        // =============================
+        // Get By Context
+        // =============================
+        
+        // يجيب مواعيد Request معين (للمريض أو الطالب)
+
+
+        Task<Result<IEnumerable<AppointmentResponseDTO>>> GetPatientAppointmentsAsync(
+            string patientUserId);
         // كل مواعيد المريض
 
-        Task<Result<IEnumerable<AppointmentResponseDTO>>> GetStudentAppointmentsAsync(string studentUserId);
+
+        Task<Result<IEnumerable<AppointmentResponseDTO>>> GetStudentAppointmentsAsync(
+            string studentUserId);
         // كل مواعيد الطالب
 
+
+        // =============================
+        // Background Job
+        // =============================
         Task AutoCompleteAppointmentAsync(int appointmentId);
-        // Hangfire يناديها تلقائي
-
-
-
-
-
-
-
+        // Hangfire
     }
 }

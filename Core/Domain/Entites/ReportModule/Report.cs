@@ -1,5 +1,6 @@
 ﻿using Domain.Entites.CaseModule;
 using Domain.Entites.StudentModule;
+using Domain.Entites.TreatmentRequestModule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,18 +12,15 @@ namespace Domain.Entites.ReportModule
     public class Report : BaseEntity<int>
     {
 
-        public int CaseId { get; set; }
+        public int TreatmentRequestId { get; set; }
 
-        public int StudentId { get; set; }
+        public TreatmentRequest TreatmentRequest { get; set; } = null!;
 
         public string Diagnosis { get; set; } = null!;
 
         public string TreatmentPlan { get; set; } = null!;
 
-        public string? Notes { get; set; } = null!;
-        public Case Case { get; set; } = null!;
-
-        public Student Student { get; set; } = null!;
+        public string? Notes { get; set; }
 
         public ICollection<ReportImage> Images { get; set; } = new List<ReportImage>();
     }

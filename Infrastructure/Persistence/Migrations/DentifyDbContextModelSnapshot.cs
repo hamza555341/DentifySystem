@@ -33,33 +33,23 @@ namespace Persistence.Migrations
                     b.Property<DateTimeOffset>("AppointmentDate")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<int>("CaseId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar");
-
-                    b.Property<int>("PatientId")
-                        .HasColumnType("int");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("StudentId")
+                    b.Property<int>("TreatmentRequestId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CaseId");
-
-                    b.HasIndex("PatientId");
-
-                    b.HasIndex("StudentId");
+                    b.HasIndex("TreatmentRequestId");
 
                     b.ToTable("Appointments", (string)null);
                 });
@@ -76,17 +66,10 @@ namespace Persistence.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
-                    b.Property<int?>("AssignedStudentId")
-                        .HasColumnType("int");
-
                     b.Property<string>("City")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Condition")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -95,6 +78,11 @@ namespace Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Disease")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime?>("LastUpdatedAt")
                         .HasColumnType("datetime2");
@@ -106,8 +94,6 @@ namespace Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AssignedStudentId");
 
                     b.HasIndex("PatientId");
 
@@ -141,6 +127,45 @@ namespace Persistence.Migrations
                     b.HasIndex("CaseId");
 
                     b.ToTable("CaseImages", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entites.ChatModule.ChatMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MediaUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("TreatmentRequestId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("TreatmentRequestId");
+
+                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("Domain.Entites.IdentityModule.ApplicationUser", b =>
@@ -229,16 +254,9 @@ namespace Persistence.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETDATE()");
 
                     b.Property<string>("Governorate")
                         .IsRequired()
@@ -247,16 +265,11 @@ namespace Persistence.Migrations
 
                     b.Property<string>("IdentityUserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("NationalId")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
 
                     b.Property<string>("ProfileImageUrl")
                         .HasMaxLength(500)
@@ -264,18 +277,14 @@ namespace Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
+                    b.HasIndex("IdentityUserId")
                         .IsUnique();
 
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique();
+                    b.HasIndex("NationalId")
+                        .IsUnique()
+                        .HasFilter("[NationalId] IS NOT NULL");
 
-                    b.ToTable("Patients", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Patient_Email", "Email LIKE '%_@__%.__%'");
-
-                            t.HasCheckConstraint("CK_Patient_Phone", "(PhoneNumber LIKE '010________' OR PhoneNumber LIKE '011________' OR PhoneNumber LIKE '012________')");
-                        });
+                    b.ToTable("Patients", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entites.ReportModule.Report", b =>
@@ -286,7 +295,7 @@ namespace Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CaseId")
+                    b.Property<int?>("CaseId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
@@ -301,7 +310,7 @@ namespace Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<int>("StudentId")
+                    b.Property<int?>("StudentId")
                         .HasColumnType("int");
 
                     b.Property<string>("TreatmentPlan")
@@ -309,11 +318,17 @@ namespace Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<int>("TreatmentRequestId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CaseId");
 
                     b.HasIndex("StudentId");
+
+                    b.HasIndex("TreatmentRequestId")
+                        .IsUnique();
 
                     b.ToTable("Reports", (string)null);
                 });
@@ -364,29 +379,19 @@ namespace Persistence.Migrations
                         .HasColumnName("JoinDate")
                         .HasDefaultValueSql("GETDATE()");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("IdentityUserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar");
-
-                    b.Property<string>("IdentityUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("IsApproved")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("ProfileImageUrl")
                         .HasMaxLength(500)
@@ -395,22 +400,14 @@ namespace Persistence.Migrations
                     b.Property<string>("University")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar");
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
+                    b.HasIndex("IdentityUserId")
                         .IsUnique();
 
-                    b.HasIndex("PhoneNumber")
-                        .IsUnique();
-
-                    b.ToTable("Students", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Student_Email", "Email LIKE '%_@__%.__%'");
-
-                            t.HasCheckConstraint("CK_Student_Phone", "(PhoneNumber LIKE '010________' OR PhoneNumber LIKE '011________' OR PhoneNumber LIKE '012________')");
-                        });
+                    b.ToTable("Students", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entites.StudentModule.StudentRating", b =>
@@ -420,9 +417,6 @@ namespace Persistence.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CaseId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Comment")
                         .HasMaxLength(1000)
@@ -440,16 +434,53 @@ namespace Persistence.Migrations
                     b.Property<int>("StudentId")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<int>("TreatmentRequestId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("PatientId");
+                    b.HasKey("Id");
 
                     b.HasIndex("StudentId");
 
-                    b.HasIndex("CaseId", "PatientId")
+                    b.HasIndex("TreatmentRequestId")
+                        .IsUnique();
+
+                    b.HasIndex("PatientId", "TreatmentRequestId")
                         .IsUnique();
 
                     b.ToTable("StudentRatings", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entites.TreatmentRequestModule.TreatmentRequest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CaseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("InitiatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CaseId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("TreatmentRequests");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -587,45 +618,22 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entites.AppointmentModule.Appointment", b =>
                 {
-                    b.HasOne("Domain.Entites.CaseModule.Case", "Case")
+                    b.HasOne("Domain.Entites.TreatmentRequestModule.TreatmentRequest", "TreatmentRequest")
                         .WithMany("Appointments")
-                        .HasForeignKey("CaseId")
+                        .HasForeignKey("TreatmentRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entites.PatientModule.Patient", "Patient")
-                        .WithMany()
-                        .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entites.StudentModule.Student", "Student")
-                        .WithMany()
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Case");
-
-                    b.Navigation("Patient");
-
-                    b.Navigation("Student");
+                    b.Navigation("TreatmentRequest");
                 });
 
             modelBuilder.Entity("Domain.Entites.CaseModule.Case", b =>
                 {
-                    b.HasOne("Domain.Entites.StudentModule.Student", "AssignedStudent")
-                        .WithMany("AcceptedCases")
-                        .HasForeignKey("AssignedStudentId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Domain.Entites.PatientModule.Patient", "Patient")
                         .WithMany("Cases")
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("AssignedStudent");
 
                     b.Navigation("Patient");
                 });
@@ -641,23 +649,53 @@ namespace Persistence.Migrations
                     b.Navigation("Case");
                 });
 
-            modelBuilder.Entity("Domain.Entites.ReportModule.Report", b =>
+            modelBuilder.Entity("Domain.Entites.ChatModule.ChatMessage", b =>
                 {
-                    b.HasOne("Domain.Entites.CaseModule.Case", "Case")
-                        .WithMany("Reports")
-                        .HasForeignKey("CaseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entites.StudentModule.Student", "Student")
-                        .WithMany("Reports")
-                        .HasForeignKey("StudentId")
+                    b.HasOne("Domain.Entites.IdentityModule.ApplicationUser", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Case");
+                    b.HasOne("Domain.Entites.TreatmentRequestModule.TreatmentRequest", "TreatmentRequest")
+                        .WithMany("Messages")
+                        .HasForeignKey("TreatmentRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Student");
+                    b.Navigation("Sender");
+
+                    b.Navigation("TreatmentRequest");
+                });
+
+            modelBuilder.Entity("Domain.Entites.PatientModule.Patient", b =>
+                {
+                    b.HasOne("Domain.Entites.IdentityModule.ApplicationUser", "ApplicationUser")
+                        .WithOne()
+                        .HasForeignKey("Domain.Entites.PatientModule.Patient", "IdentityUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("Domain.Entites.ReportModule.Report", b =>
+                {
+                    b.HasOne("Domain.Entites.CaseModule.Case", null)
+                        .WithMany("Reports")
+                        .HasForeignKey("CaseId");
+
+                    b.HasOne("Domain.Entites.StudentModule.Student", null)
+                        .WithMany("Reports")
+                        .HasForeignKey("StudentId");
+
+                    b.HasOne("Domain.Entites.TreatmentRequestModule.TreatmentRequest", "TreatmentRequest")
+                        .WithOne("Report")
+                        .HasForeignKey("Domain.Entites.ReportModule.Report", "TreatmentRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("TreatmentRequest");
                 });
 
             modelBuilder.Entity("Domain.Entites.ReportModule.ReportImage", b =>
@@ -671,14 +709,19 @@ namespace Persistence.Migrations
                     b.Navigation("Report");
                 });
 
-            modelBuilder.Entity("Domain.Entites.StudentModule.StudentRating", b =>
+            modelBuilder.Entity("Domain.Entites.StudentModule.Student", b =>
                 {
-                    b.HasOne("Domain.Entites.CaseModule.Case", "Case")
-                        .WithMany()
-                        .HasForeignKey("CaseId")
+                    b.HasOne("Domain.Entites.IdentityModule.ApplicationUser", "ApplicationUser")
+                        .WithOne()
+                        .HasForeignKey("Domain.Entites.StudentModule.Student", "IdentityUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("ApplicationUser");
+                });
+
+            modelBuilder.Entity("Domain.Entites.StudentModule.StudentRating", b =>
+                {
                     b.HasOne("Domain.Entites.PatientModule.Patient", "Patient")
                         .WithMany("Ratings")
                         .HasForeignKey("PatientId")
@@ -691,9 +734,34 @@ namespace Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Case");
+                    b.HasOne("Domain.Entites.TreatmentRequestModule.TreatmentRequest", "TreatmentRequest")
+                        .WithOne("Rating")
+                        .HasForeignKey("Domain.Entites.StudentModule.StudentRating", "TreatmentRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Patient");
+
+                    b.Navigation("Student");
+
+                    b.Navigation("TreatmentRequest");
+                });
+
+            modelBuilder.Entity("Domain.Entites.TreatmentRequestModule.TreatmentRequest", b =>
+                {
+                    b.HasOne("Domain.Entites.CaseModule.Case", "Case")
+                        .WithMany("TreatmentRequests")
+                        .HasForeignKey("CaseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entites.StudentModule.Student", "Student")
+                        .WithMany("TreatmentRequests")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Case");
 
                     b.Navigation("Student");
                 });
@@ -751,11 +819,11 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entites.CaseModule.Case", b =>
                 {
-                    b.Navigation("Appointments");
-
                     b.Navigation("Images");
 
                     b.Navigation("Reports");
+
+                    b.Navigation("TreatmentRequests");
                 });
 
             modelBuilder.Entity("Domain.Entites.PatientModule.Patient", b =>
@@ -772,11 +840,22 @@ namespace Persistence.Migrations
 
             modelBuilder.Entity("Domain.Entites.StudentModule.Student", b =>
                 {
-                    b.Navigation("AcceptedCases");
-
                     b.Navigation("Ratings");
 
                     b.Navigation("Reports");
+
+                    b.Navigation("TreatmentRequests");
+                });
+
+            modelBuilder.Entity("Domain.Entites.TreatmentRequestModule.TreatmentRequest", b =>
+                {
+                    b.Navigation("Appointments");
+
+                    b.Navigation("Messages");
+
+                    b.Navigation("Rating");
+
+                    b.Navigation("Report");
                 });
 #pragma warning restore 612, 618
         }

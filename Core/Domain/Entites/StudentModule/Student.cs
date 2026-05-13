@@ -1,5 +1,7 @@
 ﻿using Domain.Entites.CaseModule;
+using Domain.Entites.IdentityModule;
 using Domain.Entites.ReportModule;
+using Domain.Entites.TreatmentRequestModule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,20 +15,18 @@ namespace Domain.Entites.StudentModule
         public string IdentityUserId { get; set; } = null!;
         public bool IsActive { get; set; } = true;
 
-        public string FullName { get; set; } = null!;
-
-        public string PhoneNumber { get; set; } = null!;
-        public string Email { get; set; } = null!;
-
         public string University { get; set; } = null!;
 
         public int AcademicYear { get; set; }
 
-        public bool IsApproved { get; set; } = false;
+        public bool IsApproved { get; set; } = true;
 
         public string? ProfileImageUrl { get; set; }
 
-        public ICollection<Case> AcceptedCases { get; set; } = new List<Case>();
+        public ApplicationUser ApplicationUser { get; set; } = null!;
+
+
+        public ICollection<TreatmentRequest> TreatmentRequests { get; set; } = new List<TreatmentRequest>();
 
         public ICollection<Report> Reports { get; set; } = new List<Report>();
 

@@ -15,36 +15,19 @@ namespace Persistence.Data.Configurations
         {
             builder.ToTable("Students");
 
-            builder.Property(s => s.FullName)
-                   .IsRequired()
-                   .HasColumnType("nvarchar")
-                   .HasMaxLength(200);
+            // =============================
+            // Relations
+            // =============================
+            builder.HasOne(s => s.ApplicationUser)
+                   .WithOne()
+                   .HasForeignKey<Student>(s => s.IdentityUserId)
+                   .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Property(s => s.PhoneNumber)
-                   .IsRequired()
-                   .HasMaxLength(11);
-
-            builder.ToTable(S =>
-            {
-                S.HasCheckConstraint("CK_Student_Phone", "(PhoneNumber LIKE '010________' OR PhoneNumber LIKE '011________' OR PhoneNumber LIKE '012________')");
-            });
-            builder.HasIndex(e => e.PhoneNumber)
-                   .IsUnique();
-
-            builder.Property(S => S.Email)
-                .IsRequired();
-
-            builder.ToTable(S =>
-            {
-                S.HasCheckConstraint("CK_Student_Email", "Email LIKE '%_@__%.__%'");
-            });
-
-            builder.HasIndex(e => e.Email)
-                   .IsUnique();
-
+            // =============================
+            // Properties
+            // =============================
             builder.Property(s => s.University)
                    .IsRequired()
-                   .HasColumnType("nvarchar")
                    .HasMaxLength(200);
 
             builder.Property(s => s.AcademicYear)
@@ -57,6 +40,11 @@ namespace Persistence.Data.Configurations
                    .HasColumnName("JoinDate")
                    .HasDefaultValueSql("GETDATE()");
 
+            builder.Property(s => s.IsApproved)
+                   .HasDefaultValue(false);
+
+            builder.Property(s => s.IsActive)
+                   .HasDefaultValue(true);
         }
     }
 }

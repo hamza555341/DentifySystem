@@ -15,28 +15,27 @@ namespace Persistence.Data.Configurations
         {
             builder.ToTable("Appointments");
 
+            // =============================
+            // Properties
+            // =============================
             builder.Property(a => a.Location)
                    .IsRequired()
-                   .HasColumnType("nvarchar")
                    .HasMaxLength(200);
 
             builder.Property(a => a.Status)
                    .HasConversion<int>();
 
-            builder.HasOne(a => a.Case)
-                   .WithMany(c=>c.Appointments)
-                   .HasForeignKey(a => a.CaseId)
+            builder.Property(a => a.AppointmentDate)
+                   .IsRequired();
+
+            // =============================
+            // Relationship (IMPORTANT)
+            // =============================
+            builder.HasOne(a => a.TreatmentRequest)
+                   .WithMany(r => r.Appointments)
+                   .HasForeignKey(a => a.TreatmentRequestId)
                    .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasOne(a => a.Student)
-                   .WithMany()
-                   .HasForeignKey(a => a.StudentId)
-                   .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(a => a.Patient)
-                   .WithMany()
-                   .HasForeignKey(a => a.PatientId)
-                   .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
+

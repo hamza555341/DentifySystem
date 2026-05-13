@@ -3,6 +3,7 @@ using Domain.Entites.CaseModule;
 using Domain.Entites.PatientModule;
 using Domain.Entites.ReportModule;
 using Domain.Entites.StudentModule;
+using Domain.Entites.TreatmentRequestModule;
 using Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Service.Abstraction;
@@ -40,33 +41,34 @@ namespace Service
             string userId, CreateReportDTO dto)
         {
             var student = await _unitOfWork.GetRepository<Student, int>()
-                .GetByIdAsync(new StudentByUserIdSpecification(userId));
+         .GetByIdAsync(new StudentByUserIdSpecification(userId));
 
             if (student is null)
                 return Error.NotFound("Student.NotFound");
 
-            //if (!student.IsApproved)
-            //    return Error.Validation("Student.NotApproved",
-            //        "Your account is not approved yet");
+            var request = await _unitOfWork.GetRepository<TreatmentRequest, int>()
+                .GetByIdAsync(new TreatmentRequestWithDetailsSpecification(dto.TreatmentRequestId));
 
-            var caseEntity = await _unitOfWork.GetRepository<Case, int>()
-                .GetByIdAsync(dto.CaseId);
+            if (request is null)
+                return Error.NotFound("Request.NotFound");
 
-            if (caseEntity is null)
-                return Error.NotFound("Case.NotFound");
+            if (request.StudentId != student.Id)
+                return Error.Validation("Not.Allowed");
 
-            if (caseEntity.AssignedStudentId != student.Id)
-                return Error.Validation("Case.NotAssigned",
-                    "This case is not assigned to you");
+            if (request.Status != TreatmentRequestStatus.Accepted)
+                return Error.Validation("Request.NotAccepted");
 
-            if (caseEntity.Status != CaseStatus.Assigned)
-                return Error.Validation("Case.InvalidStatus",
-                    "Case must be assigned before submitting a report");
+            var reports = await _unitOfWork
+            .GetRepository<Report, int>()
+            .GetAllAsync();
+
+            var hasReport = reports.Any(r => r.TreatmentRequestId == request.Id);
+            if (hasReport)
+                return Error.Validation("Report.Exists");
 
             var report = new Report
             {
-                CaseId = dto.CaseId,
-                StudentId = student.Id,
+                TreatmentRequestId = request.Id,
                 Diagnosis = dto.Diagnosis,
                 TreatmentPlan = dto.TreatmentPlan,
                 Notes = dto.Notes,
@@ -74,7 +76,7 @@ namespace Service
                 Images = new List<ReportImage>()
             };
 
-            if (dto.Images is not null && dto.Images.Any())
+            if (dto.Images?.Any() == true)
             {
                 foreach (var file in dto.Images)
                 {
@@ -91,8 +93,7 @@ namespace Service
 
             await _unitOfWork.GetRepository<Report, int>().AddAsync(report);
 
-            caseEntity.Status = CaseStatus.Completed;
-            _unitOfWork.GetRepository<Case, int>().Update(caseEntity);
+            request.Case.Status = CaseStatus.Completed;
 
             await _unitOfWork.SaveChangesAsync();
 
@@ -100,6 +101,7 @@ namespace Service
                 .GetByIdAsync(new ReportWithDetailsSpecification(report.Id));
 
             var response = _mapper.Map<ReportResponseDTO>(result!);
+
             var baseUrl = _configuration["URLs:BaseURL"];
             response.Images = result!.Images
                 .Select(i => $"{baseUrl}{i.ImageUrl}")
@@ -124,7 +126,7 @@ namespace Service
                 .GetByIdAsync(new StudentByUserIdSpecification(userId));
 
             bool isOwner = (patient is not null && caseEntity.PatientId == patient.Id) ||
-                           (student is not null && caseEntity.AssignedStudentId == student.Id);
+                           (student is not null && caseEntity.TreatmentRequests.Any(x=>x.StudentId==student.Id));
 
             if (!isOwner)
                 return Error.Validation("Access.Denied", "You don't have access to this case");

@@ -1,4 +1,5 @@
 ﻿using Domain.Entites.CaseModule;
+using Domain.Entites.IdentityModule;
 using Domain.Entites.StudentModule;
 using System;
 using System.Collections.Generic;
@@ -12,10 +13,6 @@ namespace Domain.Entites.PatientModule
     {
         public string IdentityUserId { get; set; } = null!;
 
-        public string FullName { get; set; } = null!;
-
-        public string PhoneNumber { get; set; } = null!;
-        public string Email { get; set; } = null!;
 
         public string City { get; set; } = null!;
 
@@ -28,6 +25,7 @@ namespace Domain.Entites.PatientModule
         public string? ChronicDiseases { get; set; }
 
         public ICollection<Case> Cases { get; set; } = new List<Case>();
+        public ApplicationUser ApplicationUser { get; set; } = null!;
 
         public ICollection<StudentRating> Ratings { get; set; } = new List<StudentRating>();
 

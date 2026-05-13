@@ -13,11 +13,21 @@ namespace Service.MappingProfile
        {
             public CaseMappingProfile()
             {
-                CreateMap<Case, CaseResponseDTO>()
-                    .ForMember(d => d.Disease, o => o.MapFrom(s => s.Condition))
-                    .ForMember(d => d.PatientName, o => o.MapFrom(s => s.Patient.FullName))
-                    .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.ToString()))
-                 .ForMember(d => d.Images, o => o.Ignore());
+            CreateMap<Case, CaseResponseDTO>()
+
+        .ForMember(d => d.Disease,
+            o => o.MapFrom(s => s.Disease))
+
+        .ForMember(d => d.PatientName,
+            o => o.MapFrom(s =>
+                s.Patient.ApplicationUser.DisplayName))
+
+        .ForMember(d => d.Status,
+            o => o.MapFrom(s => s.Status.ToString()))
+
+        .ForMember(d => d.Images,
+            o => o.MapFrom(s =>
+                s.Images.Select(i => i.ImageUrl)));
 
         }
     }

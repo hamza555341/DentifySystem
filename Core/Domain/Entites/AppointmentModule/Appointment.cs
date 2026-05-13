@@ -1,6 +1,7 @@
 ﻿using Domain.Entites.CaseModule;
 using Domain.Entites.PatientModule;
 using Domain.Entites.StudentModule;
+using Domain.Entites.TreatmentRequestModule;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,11 +13,6 @@ namespace Domain.Entites.AppointmentModule
     public class Appointment : BaseEntity<int>
     {
 
-        public int CaseId { get; set; }
-
-        public int StudentId { get; set; }
-
-        public int PatientId { get; set; }
 
         public DateTimeOffset AppointmentDate { get; set; }
 
@@ -24,10 +20,9 @@ namespace Domain.Entites.AppointmentModule
 
         public string Location { get; set; } = null!;
 
-        public Case Case { get; set; } = null!;
+        public int TreatmentRequestId { get; set; }
+        public TreatmentRequest TreatmentRequest { get; set; }
 
-        public Student Student { get; set; } = null!;
 
-        public Patient Patient { get; set; } = null!;
     }
 }

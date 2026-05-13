@@ -116,9 +116,6 @@ namespace Service
 
             var student = new Student
             {
-                FullName = dto.FullName,
-                PhoneNumber = dto.PhoneNumber,
-                Email= dto.Email,
                 University = dto.University,
                 AcademicYear = dto.AcademicYear,
                 IsApproved = false,
@@ -184,9 +181,7 @@ namespace Service
 
             var patient = new Patient
             {
-                FullName = dto.FullName,
-                PhoneNumber = dto.PhoneNumber,
-                Email = dto.Email,
+          
                 City = dto.City,
                 Governorate = dto.Governorate,
                 NationalId = dto.NationalId,

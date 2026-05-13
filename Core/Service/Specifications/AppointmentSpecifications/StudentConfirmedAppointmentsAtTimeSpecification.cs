@@ -10,10 +10,12 @@ namespace Service.Specifications.AppointmentSpecifications
     public class StudentConfirmedAppointmentsAtTimeSpecification : BaseSpecification<Appointment, int>
     {
         public StudentConfirmedAppointmentsAtTimeSpecification(int studentId, DateTimeOffset date)
-            : base(a => a.StudentId == studentId &&
+            : base(a => a.TreatmentRequest.StudentId == studentId &&
                        a.AppointmentDate == date &&
                        a.Status == AppointmentStatus.Confirmed)
         {
+            AddInclude(x=>x.TreatmentRequest);
+            AddInclude(x=>x.TreatmentRequest.Student);
         }
     }
 }

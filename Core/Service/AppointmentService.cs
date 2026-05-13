@@ -3,6 +3,7 @@ using Domain.Entites.AppointmentModule;
 using Domain.Entites.CaseModule;
 using Domain.Entites.PatientModule;
 using Domain.Entites.StudentModule;
+using Domain.Entites.TreatmentRequestModule;
 using Domain.Interfaces;
 using Service.Abstraction;
 using Service.Specifications.AppointmentSpecifications;
@@ -24,88 +25,61 @@ namespace Service
         private readonly IMapper _mapper;
         private readonly IBackgroundJobService _backgroundJobService;
 
-        public AppointmentService(IUnitOfWork unitOfWork, IMapper mapper,IBackgroundJobService backgroundJobService)
+        public AppointmentService(IUnitOfWork unitOfWork, IMapper mapper, IBackgroundJobService backgroundJobService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _backgroundJobService = backgroundJobService;
         }
 
-
-
+        // =============================
+        // Auto Complete
+        // =============================
         public async Task AutoCompleteAppointmentAsync(int appointmentId)
         {
-            var appointmentRepo = _unitOfWork.GetRepository<Appointment, int>();
+            var repo = _unitOfWork.GetRepository<Appointment, int>();
+            var appointment = await repo.GetByIdAsync(appointmentId);
 
-            var appointment = await appointmentRepo.GetByIdAsync(appointmentId);
+            if (appointment is null) return;
 
-
-            if (appointment is null)
-            {
-                return;
-            }
-
-            // check Appointment status is confirmed before marking it as completed
             if (appointment.Status == AppointmentStatus.Confirmed)
-                
             {
                 appointment.Status = AppointmentStatus.Completed;
-                appointmentRepo.Update(appointment);
+                repo.Update(appointment);
                 await _unitOfWork.SaveChangesAsync();
-
             }
         }
 
-        public async Task<Result<IEnumerable<AppointmentResponseDTO>>> GetCaseAppointmentsAsync(
-      int caseId, string userId)
+        // =============================
+        // Get Patient Appointments
+        // =============================
+        public async Task<Result<IEnumerable<AppointmentResponseDTO>>> GetPatientAppointmentsAsync(string patientUserId)
         {
-            var caseEntity = await _unitOfWork.GetRepository<Case, int>()
-                .GetByIdAsync(new CaseWithPatientAndStudentSpecification(caseId));
+            var patient = await _unitOfWork.GetRepository<Patient, int>()
+                .GetByIdAsync(new PatientByUserIdSpecification(patientUserId));
 
-            if (caseEntity is null)
-                return Error.NotFound("Case.NotFound");
-
-            // check ownership بشكل مباشر
-            var isOwner = caseEntity.Patient.IdentityUserId == userId;
-            var isAssignedStudent = caseEntity.AssignedStudent != null &&
-                                    caseEntity.AssignedStudent.IdentityUserId == userId;
-
-            if (!isOwner && !isAssignedStudent)
-                return Error.Unauthorized("Access.Denied");
+            if (patient is null)
+                return Result<IEnumerable<AppointmentResponseDTO>>
+                    .Fail(Error.NotFound("Patient.NotFound"));
 
             var appointments = await _unitOfWork.GetRepository<Appointment, int>()
-                .GetAllAsync(new AppointmentsByCaseSpecification(caseId));
+                .GetAllAsync(new AppointmentsByPatientSpecification(patient.Id));
 
             return Result<IEnumerable<AppointmentResponseDTO>>.Ok(
                 _mapper.Map<IEnumerable<AppointmentResponseDTO>>(appointments));
         }
 
-        public async Task<Result<IEnumerable<AppointmentResponseDTO>>> GetPatientAppointmentsAsync(string patientUserId)
-        {
-            var patient = await _unitOfWork.GetRepository<Patient, int>()
-           .GetByIdAsync(new PatientByUserIdSpecification(patientUserId));
-
-
-            if (patient is null)
-                return Error.NotFound("Patient.NotFound");
-
-            var appointments = await _unitOfWork.GetRepository<Appointment, int>()
-                .GetAllAsync(new AppointmentsByPatientSpecification(patient.Id));
-
-            if (appointments.Any(a => a.PatientId != patient.Id))
-                     return Error.Unauthorized("Access.Denied");
-
-            return Result<IEnumerable<AppointmentResponseDTO>>.Ok(
-                _mapper.Map<IEnumerable<AppointmentResponseDTO>>(appointments));    
-        }
-
+        // =============================
+        // Get Student Appointments
+        // =============================
         public async Task<Result<IEnumerable<AppointmentResponseDTO>>> GetStudentAppointmentsAsync(string studentUserId)
         {
             var student = await _unitOfWork.GetRepository<Student, int>()
-            .GetByIdAsync(new StudentByUserIdSpecification(studentUserId));
+                .GetByIdAsync(new StudentByUserIdSpecification(studentUserId));
 
             if (student is null)
-                return Error.NotFound("Student.NotFound");
+                return Result<IEnumerable<AppointmentResponseDTO>>
+                    .Fail(Error.NotFound("Student.NotFound"));
 
             var appointments = await _unitOfWork.GetRepository<Appointment, int>()
                 .GetAllAsync(new AppointmentsByStudentSpecification(student.Id));
@@ -114,178 +88,152 @@ namespace Service
                 _mapper.Map<IEnumerable<AppointmentResponseDTO>>(appointments));
         }
 
+        // =============================
+        // Propose Appointments
+        // =============================
         public async Task<Result<IEnumerable<AppointmentResponseDTO>>> ProposeAppointmentsAsync(
-      string studentUserId, ProposeAppointmentsDTO dto)
+            string studentUserId, ProposeAppointmentsDTO dto)
         {
             var studentRepo = _unitOfWork.GetRepository<Student, int>();
-            var caseRepo = _unitOfWork.GetRepository<Case, int>();
+            var requestRepo = _unitOfWork.GetRepository<TreatmentRequest, int>();
             var appointmentRepo = _unitOfWork.GetRepository<Appointment, int>();
 
-            // 1. Get Student
-            var student = await studentRepo
-                .GetByIdAsync(new StudentByUserIdSpecification(studentUserId));
+            var student = await studentRepo.GetByIdAsync(new StudentByUserIdSpecification(studentUserId));
 
             if (student is null)
-                return Error.NotFound("Student.NotFound");
+                return Result<IEnumerable<AppointmentResponseDTO>>
+                    .Fail(Error.NotFound("Student.NotFound"));
 
-            //if (!student.IsApproved)
-            //    return Error.Validation("Student.NotApproved");
+            var request = await requestRepo.GetByIdAsync(dto.TreatmentRequestId);
 
-            // 2. Get Case
-            var caseEntity = await caseRepo.GetByIdAsync(dto.CaseId);
+            if (request is null)
+                return Result<IEnumerable<AppointmentResponseDTO>>
+                    .Fail(Error.NotFound("Request.NotFound"));
 
-            if (caseEntity is null)
-                return Error.NotFound("Case.NotFound");
+            if (request.StudentId != student.Id)
+                return Result<IEnumerable<AppointmentResponseDTO>>
+                    .Fail(Error.Validation("Request.NotBelongToStudent"));
 
-            if (caseEntity.AssignedStudentId != student.Id)
-                return Error.Validation("Case.NotAssigned");
+            if (request.Status != TreatmentRequestStatus.Accepted)
+                return Result<IEnumerable<AppointmentResponseDTO>>
+                    .Fail(Error.Validation("Request.NotAccepted"));
 
-            if (caseEntity.Status != CaseStatus.Assigned)
-                return Error.Validation("Case.InvalidStatus", "Case must be assigned");
+            var active = await appointmentRepo
+                .GetAllAsync(new ActiveAppointmentsByRequestSpecification(request.Id));
 
-            // 3. Prevent duplicate active appointments
-            var hasActiveAppointments = await appointmentRepo
-                .GetAllAsync(new ActiveAppointmentsByCaseSpecification(dto.CaseId));
+            if (active.Any())
+                return Result<IEnumerable<AppointmentResponseDTO>>
+                    .Fail(Error.Validation("Appointments.Exists"));
 
-            if (hasActiveAppointments.Any())
-                return Error.Validation("Appointments.Exists",
-                    "Active appointments already exist for this case");
-
-            // 4. Validate slots count
             if (dto.Slots is null || dto.Slots.Count != 2)
-                return Error.Validation("Slots.Invalid", "Exactly 2 slots required");
+                return Result<IEnumerable<AppointmentResponseDTO>>
+                    .Fail(Error.Validation("Slots.Invalid"));
 
-            var slot1 = dto.Slots[0];
-            var slot2 = dto.Slots[1];
+            var s1 = dto.Slots[0];
+            var s2 = dto.Slots[1];
 
-            // 5. Validate distinct dates
-            if (slot1.AppointmentDate == slot2.AppointmentDate)
-                return Error.Validation("Slots.DuplicateDates");
+            if (s1.AppointmentDate == s2.AppointmentDate)
+                return Result<IEnumerable<AppointmentResponseDTO>>
+                    .Fail(Error.Validation("Slots.Duplicate"));
 
-            // 6. Validate future dates
-            if (slot1.AppointmentDate <= DateTimeOffset.UtcNow ||
-                slot2.AppointmentDate <= DateTimeOffset.UtcNow)
-                return Error.Validation("Slots.InvalidDate", "Dates must be in the future");
+            if (s1.AppointmentDate <= DateTimeOffset.UtcNow ||
+                s2.AppointmentDate <= DateTimeOffset.UtcNow)
+                return Result<IEnumerable<AppointmentResponseDTO>>
+                    .Fail(Error.Validation("Slots.InvalidDate"));
 
-            // 7. Conflict check (student already has confirmed appointment)
-            var conflict1 = await appointmentRepo.GetAllAsync(
-                new StudentConfirmedAppointmentsAtTimeSpecification(student.Id, slot1.AppointmentDate));
-
-            var conflict2 = await appointmentRepo.GetAllAsync(
-                new StudentConfirmedAppointmentsAtTimeSpecification(student.Id, slot2.AppointmentDate));
-
-            if (conflict1.Any() || conflict2.Any())
-                return Error.Validation("Slots.Conflict",
-                    "You already have an appointment at one of these times");
-
-            // 8. Create appointments (NO await in loop)
-            var appointment1 = new Appointment
+            var a1 = new Appointment
             {
-                CaseId = dto.CaseId,
-                StudentId = student.Id,
-                PatientId = caseEntity.PatientId,
-                AppointmentDate = slot1.AppointmentDate,
-                Location = slot1.Location,
+                TreatmentRequestId = request.Id,
+                AppointmentDate = s1.AppointmentDate,
+                Location = s1.Location,
                 Status = AppointmentStatus.proposed
             };
 
-            var appointment2 = new Appointment
+            var a2 = new Appointment
             {
-                CaseId = dto.CaseId,
-                StudentId = student.Id,
-                PatientId = caseEntity.PatientId,
-                AppointmentDate = slot2.AppointmentDate,
-                Location = slot2.Location,
+                TreatmentRequestId = request.Id,
+                AppointmentDate = s2.AppointmentDate,
+                Location = s2.Location,
                 Status = AppointmentStatus.proposed
             };
 
-            await appointmentRepo.AddAsync(appointment1);
-            await appointmentRepo.AddAsync(appointment2);
+            await appointmentRepo.AddAsync(a1);
+            await appointmentRepo.AddAsync(a2);
 
             await _unitOfWork.SaveChangesAsync();
 
-            // 9. Schedule Hangfire ONLY after save (Ids are generated now)
-
-            //  Schedule auto-complete after appointment time
             _backgroundJobService.ScheduleAppointmentCompletion(
-                appointment1.Id,
-                appointment1.AppointmentDate.UtcDateTime.AddHours(1));
+                a1.Id, a1.AppointmentDate.UtcDateTime.AddHours(1));
 
             _backgroundJobService.ScheduleAppointmentCompletion(
-                appointment2.Id,
-                appointment2.AppointmentDate.UtcDateTime.AddHours(1));
-
-            // 10. Return only created
-            var result = new List<Appointment> { appointment1, appointment2 };
+                a2.Id, a2.AppointmentDate.UtcDateTime.AddHours(1));
 
             return Result<IEnumerable<AppointmentResponseDTO>>.Ok(
-                _mapper.Map<IEnumerable<AppointmentResponseDTO>>(result));
+                _mapper.Map<IEnumerable<AppointmentResponseDTO>>(new[] { a1, a2 }));
         }
 
-
-        public async Task<Result> RejectAllAppointmentsAsync(int caseId, string patientUserId)
+        // =============================
+        // Reject All (Patient)
+        // =============================
+        public async Task<Result> RejectAllAppointmentsAsync(int requestId, string patientUserId)
         {
-         var patientRepo= _unitOfWork.GetRepository<Patient,int>();
-         var appointmentRepo =  _unitOfWork.GetRepository<Appointment, int>();
-           
-          var Patient= await patientRepo.GetByIdAsync(new PatientByUserIdSpecification(patientUserId));
-            if (Patient is null)
-                return Result.Failure(Error.NotFound("Patient.NotFound"));
-
-            var appointments = await appointmentRepo
-                .GetAllAsync(new ProposedAppointmentsByCaseSpecification(caseId));
-            foreach (var appointment in appointments)
-            {
-                appointment.Status = AppointmentStatus.Rejected;
-                appointmentRepo.Update(appointment);
-            }
-            await _unitOfWork.SaveChangesAsync();
-            return Result.Ok();
-
-        }
-
-        public async Task<Result> SelectAppointmentAsync(int appointmentId, string patientUserId)
-        {
-            var patientRepo = _unitOfWork.GetRepository<Patient, int>();
-            var appointmentRepo = _unitOfWork.GetRepository<Appointment, int>();
-
-            var patient = await patientRepo
+            var patient = await _unitOfWork.GetRepository<Patient, int>()
                 .GetByIdAsync(new PatientByUserIdSpecification(patientUserId));
 
             if (patient is null)
-                return Result.Failure(Error.NotFound("Patient.NotFound"));
+                return Result.Fail(Error.NotFound("Patient.NotFound"));
+
+            var appointments = await _unitOfWork.GetRepository<Appointment, int>()
+                .GetAllAsync(new ProposedAppointmentsByRequestSpecification(requestId));
+
+            foreach (var a in appointments)
+                a.Status = AppointmentStatus.Rejected;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return Result.Ok();
+        }
+
+        // =============================
+        // Confirm Appointment
+        // =============================
+        public async Task<Result> SelectAppointmentAsync(int appointmentId, string patientUserId)
+        {
+            var patient = await _unitOfWork.GetRepository<Patient, int>()
+                .GetByIdAsync(new PatientByUserIdSpecification(patientUserId));
+
+            if (patient is null)
+                return Result.Fail(Error.NotFound("Patient.NotFound"));
+
+            var appointmentRepo = _unitOfWork.GetRepository<Appointment, int>();
 
             var appointment = await appointmentRepo
-                .GetByIdAsync(new AppointmentByIdForPatientSpecification(
-                    appointmentId, patient.Id));
+                .GetByIdAsync(new AppointmentWithRequestSpecification(appointmentId));
 
             if (appointment is null)
-                return Result.Failure(Error.NotFound("Appointment.NotFound"));
+                return Result.Fail(Error.NotFound("Appointment.NotFound"));
 
             if (appointment.Status != AppointmentStatus.proposed)
-                return Result.Failure(Error.Validation("Appointment.InvalidStatus",
-                    "Only proposed appointments can be selected"));
+                return Result.Fail(Error.Validation("Invalid.Status"));
 
-            var proposedAppointments = await appointmentRepo
-                .GetAllAsync(new ProposedAppointmentsByCaseSpecification(appointment.CaseId));
+            
+            if (appointment.TreatmentRequest.Case.PatientId != patient.Id)
+                return Result.Fail(Error.Unauthorized("Access.Denied"));
+
+            var others = await appointmentRepo.GetAllAsync(
+                new ProposedAppointmentsByRequestSpecification(appointment.TreatmentRequestId));
 
             appointment.Status = AppointmentStatus.Confirmed;
-            appointmentRepo.Update(appointment);
 
-            foreach (var other in proposedAppointments)
+            foreach (var o in others)
             {
-                if (other.Id != appointment.Id)
-                {
-                    other.Status = AppointmentStatus.Cancelled;
-                    appointmentRepo.Update(other);
-                }
+                if (o.Id != appointment.Id)
+                    o.Status = AppointmentStatus.Cancelled;
             }
 
             await _unitOfWork.SaveChangesAsync();
 
-              return Result.Ok();
+            return Result.Ok();
         }
-
- 
     }
 }
