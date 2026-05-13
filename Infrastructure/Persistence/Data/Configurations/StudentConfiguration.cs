@@ -45,6 +45,9 @@ namespace Persistence.Data.Configurations
 
             builder.Property(s => s.IsActive)
                    .HasDefaultValue(true);
+
+            builder.Property(s => s.Specializations)
+                .HasConversion<int>();
         }
     }
 }

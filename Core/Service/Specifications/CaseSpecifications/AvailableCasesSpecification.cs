@@ -12,7 +12,7 @@ namespace Service.Specifications.CaseSpecifications
     {
         public AvailableCasesSpecification(string?city)
             : base(c =>c.Status == CaseStatus.Approved && !c.TreatmentRequests.Any(r => r.Status == TreatmentRequestStatus.Accepted)
-              && (string.IsNullOrEmpty(city)|| c.City.ToLower() == city!.ToLower()))
+              && (string.IsNullOrEmpty(city) || c.City.ToLower() == city!.ToLower()))
         {
             AddInclude(c => c.Images);
             AddInclude(c => c.Patient);

@@ -23,6 +23,8 @@ namespace Domain.Entites.StudentModule
 
         public string? ProfileImageUrl { get; set; }
 
+        public Specialization Specializations { get; set; }
+
         public ApplicationUser ApplicationUser { get; set; } = null!;
 
 

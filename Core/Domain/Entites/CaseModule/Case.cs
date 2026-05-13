@@ -37,7 +37,5 @@ namespace Domain.Entites.CaseModule
 
 
 
-
-
     }
 }
