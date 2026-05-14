@@ -16,7 +16,7 @@ namespace Service.MappingProfile
             {
                 CreateMap<TreatmentRequest, TreatmentRequestResponseDTO>()
                     .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.Student.ApplicationUser.DisplayName))
-                    .ForMember(dest => dest.StudentUniversity, opt => opt.MapFrom(src => src.Student.University))
+                    .ForMember(dest => dest.StudentCity, opt => opt.MapFrom(src => src.Student.City))
                     .ForMember(dest => dest.StudentProfileImageUrl, opt => opt.MapFrom(src => src.Student.ProfileImageUrl))
                     .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()))
                     .ForMember(dest => dest.InitiatedBy, opt => opt.MapFrom(src => src.InitiatedBy.ToString()));

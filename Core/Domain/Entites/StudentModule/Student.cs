@@ -14,13 +14,8 @@ namespace Domain.Entites.StudentModule
     {
         public string IdentityUserId { get; set; } = null!;
         public bool IsActive { get; set; } = true;
-
-        public string University { get; set; } = null!;
-
-        public int AcademicYear { get; set; }
-
-        public bool IsApproved { get; set; } = true;
-
+        public string City { get; set; } = null!;
+        public string UniEmail { get; set; } = null!;
         public string? ProfileImageUrl { get; set; }
 
         public Specialization Specializations { get; set; }

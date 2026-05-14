@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Domain.Entites.StudentModule;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -13,8 +14,10 @@ namespace Shared.DTOs.IdentityDtos
       string Password,
       string FullName,
      [Phone] string PhoneNumber,
-      string University,
-      int AcademicYear,
-      string StudentCode
+      string City,
+
+      string UniEmail,
+
+      List<Specialization> Specializations
   );
 }

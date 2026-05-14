@@ -15,8 +15,8 @@ namespace Service.MappingProfile
             {
             CreateMap<Case, CaseResponseDTO>()
 
-        .ForMember(d => d.Disease,
-            o => o.MapFrom(s => s.Disease))
+        .ForMember(d => d.SpecidRequiredSpecialization,
+            o => o.MapFrom(s => s.RequiredSpecialization))
 
         .ForMember(d => d.PatientName,
             o => o.MapFrom(s =>

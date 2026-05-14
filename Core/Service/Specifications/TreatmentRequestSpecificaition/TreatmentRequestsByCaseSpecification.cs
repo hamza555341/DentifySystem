@@ -12,7 +12,7 @@ namespace Service.Specifications.TreatmentRequestSpecificaition
         public TreatmentRequestsByCaseSpecification(int caseId)
             : base(tr => tr.CaseId == caseId)
         {
-            AddInclude(tr => tr.Student);
+            AddInclude(tr => tr.Student.ApplicationUser);
         }
     }
 }

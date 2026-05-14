@@ -12,8 +12,7 @@ namespace Domain.Entites.StudentModule
         DentalCaries = 1,
         PeriodontalDiseas = 2,
         Hypodontia = 4,
-        Healthy = 8,
-        MouthUlcer = 16,
-        ToothDiscoloration = 32
+        MouthUlcer = 8,
+        ToothDiscoloration = 16
     }
 }

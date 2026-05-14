@@ -20,13 +20,6 @@ namespace Persistence.Data.Configurations
                    .IsRequired()
                    .HasMaxLength(100);
 
-            builder.Property(p => p.Governorate)
-                   .IsRequired()
-                   .HasMaxLength(100);
-
-            builder.Property(p => p.NationalId)
-                   .HasMaxLength(20);
-
             builder.Property(p => p.ProfileImageUrl)
                    .HasMaxLength(500);
 
@@ -34,10 +27,6 @@ namespace Persistence.Data.Configurations
             .WithOne()
             .HasForeignKey<Patient>(p => p.IdentityUserId)
             .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasIndex(p => p.NationalId)
-                .IsUnique()
-                .HasFilter("[NationalId] IS NOT NULL");
 
             builder.Property(p => p.CreatedAt)
                 .HasDefaultValueSql("GETDATE()");

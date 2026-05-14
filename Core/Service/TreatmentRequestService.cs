@@ -73,6 +73,7 @@ namespace Service
             var case_ = await _unitOfWork.GetRepository<Case,int>()
                 .GetByIdAsync(new CaseWithImagesSpecification(caseId));
 
+
             if (case_ is null)
                 return Error.NotFound("Case.NotFound");
 
@@ -94,6 +95,9 @@ namespace Service
             if (patient == null) return Error.NotFound("Patient.NotFound");
 
             var case0 = await _unitOfWork.GetRepository<Case, int>().GetByIdAsync( caseId);
+
+            if (case0.Status != CaseStatus.Approved)
+                return Error.Failure("Case.NotAvailable");
 
             if (case0 == null) return Error.NotFound("Case.NotFound");
 
@@ -127,7 +131,7 @@ namespace Service
         public async Task<Result> RejectUserAsync(int requestId, string identityUserId)
         {
             var request = await _unitOfWork.GetRepository<TreatmentRequest,int>()
-               .GetByIdAsync(requestId);
+               .GetByIdAsync(new TreatmentRequestWithDetailsSpecification(requestId));
 
             if (request is null)
                 return Error.NotFound("Request.NotFound");
@@ -167,7 +171,7 @@ namespace Service
             if(student is null)
                 return Error.NotFound("Student.NotFound");
 
-            if (!student.IsApproved)
+            if (!student.IsActive)
                 return  Error.Failure("Student.NotApproved");
 
             var case0 = await _unitOfWork.GetRepository<Case,int>()

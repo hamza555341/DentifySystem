@@ -15,7 +15,7 @@ namespace Domain.Entites.CaseModule
     {
         public int PatientId { get; set; }
 
-        public string Disease { get; set; } = null!;
+        public Specialization RequiredSpecialization { get; set; }
 
         public string Description { get; set; } = null!;
 

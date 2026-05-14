@@ -109,11 +109,12 @@ namespace Service
 
             var student = new Student
             {
-                University = dto.University,
-                AcademicYear = dto.AcademicYear,
-                IsApproved = false,
+                City = dto.City,
+                UniEmail = dto.UniEmail,
+                IsActive = false,
                 IdentityUserId = user.Id,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Specializations = dto.Specializations.Aggregate((a, b) => a | b)
             };
 
             await _unitOfWork.GetRepository<Student, int>().AddAsync(student);
@@ -153,9 +154,7 @@ namespace Service
             {
           
                 City = dto.City,
-                Governorate = dto.Governorate,
-                NationalId = dto.NationalId,
-                ChronicDiseases = dto.ChronicDiseases,
+                
                 IdentityUserId = user.Id,
                 CreatedAt = DateTime.UtcNow
             };
