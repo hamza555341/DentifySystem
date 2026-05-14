@@ -1,0 +1,28 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace Persistence.Migrations
+{
+    /// <inheritdoc />
+    public partial class AlterPAtientTapleDeleteDeses : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "ChronicDiseases",
+                table: "Patients");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<string>(
+                name: "ChronicDiseases",
+                table: "Patients",
+                type: "nvarchar(max)",
+                nullable: true);
+        }
+    }
+}

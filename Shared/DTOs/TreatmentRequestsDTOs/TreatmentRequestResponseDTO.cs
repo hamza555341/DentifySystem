@@ -11,7 +11,7 @@ namespace Shared.DTOs.TreatmentRequestsDTOs
         public int Id { get; set; }
         public int CaseId { get; set; }
         public string StudentName { get; set; } = null!;
-        public string StudentUniversity { get; set; } = null!;
+        public string StudentCity { get; set; } = null!;
         public string? StudentProfileImageUrl { get; set; }
         public string Status { get; set; } = null!;
         public string InitiatedBy { get; set; } = null!;

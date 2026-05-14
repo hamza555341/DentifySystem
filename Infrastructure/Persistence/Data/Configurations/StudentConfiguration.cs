@@ -26,11 +26,11 @@ namespace Persistence.Data.Configurations
             // =============================
             // Properties
             // =============================
-            builder.Property(s => s.University)
+            builder.Property(s => s.City)
                    .IsRequired()
                    .HasMaxLength(200);
 
-            builder.Property(s => s.AcademicYear)
+            builder.Property(s => s.UniEmail)
                    .IsRequired();
 
             builder.Property(s => s.ProfileImageUrl)
@@ -40,11 +40,14 @@ namespace Persistence.Data.Configurations
                    .HasColumnName("JoinDate")
                    .HasDefaultValueSql("GETDATE()");
 
-            builder.Property(s => s.IsApproved)
+            builder.Property(s => s.IsActive)
                    .HasDefaultValue(false);
 
             builder.Property(s => s.IsActive)
                    .HasDefaultValue(true);
+
+            builder.Property(s => s.Specializations)
+                .HasConversion<int>();
         }
     }
 }

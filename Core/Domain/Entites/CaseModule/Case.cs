@@ -15,7 +15,7 @@ namespace Domain.Entites.CaseModule
     {
         public int PatientId { get; set; }
 
-        public string Disease { get; set; } = null!;
+        public Specialization RequiredSpecialization { get; set; }
 
         public string Description { get; set; } = null!;
 
@@ -34,8 +34,6 @@ namespace Domain.Entites.CaseModule
         public ICollection<Report> Reports { get; set; } = new List<Report>();
 
         public ICollection<TreatmentRequest> TreatmentRequests { get; set; } = new List<TreatmentRequest>();
-
-
 
 
 

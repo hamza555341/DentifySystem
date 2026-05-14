@@ -12,15 +12,13 @@ namespace Service.Abstraction
     {
         Task<Result<CaseResponseDTO>> CreateCaseAsync(string userId, CreateCaseDTO dto);
 
-        Task<Result<IEnumerable<CaseResponseDTO>>> GetAvailableCasesAsync(string? city);
+        Task<Result<IEnumerable<CaseResponseDTO>>> GetAvailableCasesAsync(string? city, string identityUserId);
 
         Task<Result<IEnumerable<CaseResponseDTO>>> GetPatientCasesAsync(string userId);
 
         Task<Result<IEnumerable<CaseResponseDTO>>> GetStudentCasesAsync(string userId);
 
         Task<Result<CaseResponseDTO>> GetCaseByIdAsync(int caseId);
-
-        Task<Result> AcceptTreatmentRequestAsync(int requestId, string patientUserId);
 
         Task<Result> ApproveCaseAsync(int caseId);
 

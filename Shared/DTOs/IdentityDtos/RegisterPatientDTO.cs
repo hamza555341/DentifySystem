@@ -13,9 +13,8 @@ namespace Shared.DTOs.IdentityDtos
         string Password,
         string FullName,
         [Phone]string PhoneNumber,
-        string City,
-        string Governorate,
-        string? NationalId,
-        string? ChronicDiseases
+        string City
+       
+
     );
 }

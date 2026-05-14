@@ -41,9 +41,11 @@ namespace Presentation.Controllers
         // Student
         [HttpGet("available")]
         [Authorize(Roles = "Student")]
-        public async Task<ActionResult<IEnumerable<CaseResponseDTO>>> GetAvailableCases(string? city)
+        public async Task<ActionResult<IEnumerable<CaseResponseDTO>>> GetAvailableCases([FromQuery] string? city)
         {
-            return HandleResult(await _caseService.GetAvailableCasesAsync( city));
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _caseService.GetAvailableCasesAsync(city, identityUserId);
+            return HandleResult(result);
         }
 
         [HttpGet("assigned")]
@@ -54,17 +56,7 @@ namespace Presentation.Controllers
             return HandleResult(await _caseService.GetStudentCasesAsync(userId!));
         }
 
-        [HttpPut("requests/{id}/accept")]
-        [Authorize(Roles = "Patient")]
-        public async Task<IActionResult> AcceptTreatmentRequest(int id)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            var result = await _caseService.AcceptTreatmentRequestAsync(id, userId!);
-
-            return HandleResult(result);
-        }
-
+       
         // Shared
         [HttpGet("{id}")]
         [Authorize]

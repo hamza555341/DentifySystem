@@ -9,7 +9,7 @@ namespace Shared.DTOs.CaseDtos
     public class CaseResponseDTO
     {
         public int Id { get; set; }
-        public string Disease { get; set; } = null!;
+        public string SpecidRequiredSpecialization { get; set; } = null!;
         public string Description { get; set; } = null!;
         public string City { get; set; } = null!;
         public string Status { get; set; } = null!;

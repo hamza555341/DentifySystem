@@ -16,13 +16,7 @@ namespace Domain.Entites.PatientModule
 
         public string City { get; set; } = null!;
 
-        public string Governorate { get; set; } = null!;
-
-        public string? NationalId { get; set; }
-
         public string? ProfileImageUrl { get; set; }
-
-        public string? ChronicDiseases { get; set; }
 
         public ICollection<Case> Cases { get; set; } = new List<Case>();
         public ApplicationUser ApplicationUser { get; set; } = null!;

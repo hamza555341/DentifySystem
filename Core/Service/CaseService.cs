@@ -4,6 +4,7 @@ using Domain.Entites.PatientModule;
 using Domain.Entites.StudentModule;
 using Domain.Entites.TreatmentRequestModule;
 using Domain.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Service.Abstraction;
 using Service.Specifications.CaseSpecifications;
@@ -39,6 +40,12 @@ namespace Service
             var patient = await _unitOfWork.GetRepository<Patient, int>()
                 .GetByIdAsync(new PatientByUserIdSpecification(userId));
 
+            var hasActiveCase = await _unitOfWork.GetRepository<Case, int>()
+                .GetAllAsync(new PatientActiveCaseSpecification(patient.Id));
+
+            if (hasActiveCase.Any())
+                return Error.Validation("Case.ActiveExists", "You already have an active case");
+
             if (patient is null)
                 return Error.NotFound("Patient.NotFound");
 
@@ -48,7 +55,7 @@ namespace Service
             var caseEntity = new Case
             {
                 PatientId = patient.Id,
-                Disease = dto.Disease,
+                RequiredSpecialization = dto.RequiredSpecialization,
                 Description = dto.Description,
                 City = dto.City,
                 Status = CaseStatus.Pending,
@@ -89,13 +96,19 @@ namespace Service
         }
 
 
-        public async Task<Result<IEnumerable<CaseResponseDTO>>> GetAvailableCasesAsync(string? city)
+        public async Task<Result<IEnumerable<CaseResponseDTO>>> GetAvailableCasesAsync(string? city, string identityUserId)
         {
+
+            var student = await _unitOfWork.GetRepository<Student, int>()
+                .GetByIdAsync(new StudentByUserIdSpecification(identityUserId));
+
+            if (student is null)
+                return Error.NotFound("Student.NotFound");
+
             var cases = await _unitOfWork.GetRepository<Case, int>()
-                .GetAllAsync(new AvailableCasesSpecification(city));
+                .GetAllAsync(new AvailableCasesSpecification(city, student.Specializations));
 
             var baseUrl = _configuration["URLs:BaseURL"];
-
             var response = cases.Select(c =>
             {
                 var dto = _mapper.Map<CaseResponseDTO>(c);
@@ -175,51 +188,6 @@ namespace Service
                 .ToList();
 
             return Result<CaseResponseDTO>.Ok(dto);
-        }
-
-        public async Task<Result> AcceptTreatmentRequestAsync(int requestId, string patientUserId)
-        {
-            var patient = await _unitOfWork.GetRepository<Patient, int>()
-                .GetByIdAsync(new PatientByUserIdSpecification(patientUserId));
-
-            if (patient is null)
-                return Result.Failure(Error.NotFound("Patient.NotFound"));
-
-            var requestRepo = _unitOfWork.GetRepository<TreatmentRequest, int>();
-
-            var request = await requestRepo.GetByIdAsync(
-                new TreatmentRequestWithDetailsSpecification(requestId));
-
-            if (request is null)
-                return Result.Failure(Error.NotFound("Request.NotFound"));
-
-            var caseEntity = request.Case;
-
-            if (caseEntity.PatientId != patient.Id)
-                return Result.Failure(Error.Unauthorized("Not.Allowed"));
-
-            if (request.Status != TreatmentRequestStatus.Pending)
-                return Result.Failure(Error.Validation("Invalid.Status", "Request already handled"));
-
-            // ✅ 1. قبول الطلب
-            request.Status = TreatmentRequestStatus.Accepted;
-
-            // ✅ 2. رفض باقي الطلبات
-            var allRequests = caseEntity.TreatmentRequests;
-
-            foreach (var r in allRequests)
-            {
-                if (r.Id != request.Id)
-                    r.Status = TreatmentRequestStatus.Rejected;
-            }
-
-            // ✅ 3. تحديث حالة الكيس
-            caseEntity.Status = CaseStatus.Assigned;
-
-            requestRepo.Update(request);
-            await _unitOfWork.SaveChangesAsync();
-
-            return Result.Ok();
         }
 
         public async Task<Result> ApproveCaseAsync(int caseId)

@@ -16,7 +16,7 @@ namespace Persistence.Data.Configurations
         {
             builder.ToTable("Cases");
 
-            builder.Property(c => c.Disease)
+            builder.Property(c => c.RequiredSpecialization)
                    .IsRequired()
                    .HasMaxLength(200);
 
