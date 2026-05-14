@@ -11,6 +11,5 @@ namespace Domain.Entites.IdentityModule
     {
         public string DisplayName { get; set; } = default!;
 
-
     }
 }
