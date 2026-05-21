@@ -23,12 +23,11 @@ namespace Persistence.Data.Configurations
                    .IsRequired()
                    .HasMaxLength(2000);
 
-            builder.Property(r => r.Notes)
-                   .HasMaxLength(2000);
-
-            builder.HasOne(x => x.TreatmentRequest)
+                builder.HasOne(x => x.TreatmentRequest)
                 .WithOne(x => x.Report)
-                .HasForeignKey<Report>(x => x.TreatmentRequestId);
+                .HasForeignKey<Report>(x => x.TreatmentRequestId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
         }
     }

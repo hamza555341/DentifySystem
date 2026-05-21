@@ -13,6 +13,5 @@ namespace Shared.DTOs.ReportDtos
         public string Diagnosis { get; set; } = null!;
         public string TreatmentPlan { get; set; } = null!;
         public string Notes { get; set; } = null!;
-        public List<IFormFile>? Images { get; set; }
     }
 }

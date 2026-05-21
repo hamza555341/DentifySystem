@@ -23,7 +23,5 @@ namespace Shared.DTOs.ReportDtos
         public string? Notes { get; set; }
 
         public DateTime CreatedAt { get; set; }
-
-        public List<string> Images { get; set; } = new();
     }
 }

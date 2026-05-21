@@ -19,10 +19,6 @@ namespace Service.MappingProfile
                  o => o.MapFrom(s =>
                      s.TreatmentRequest.Student.ApplicationUser.DisplayName))
 
-             .ForMember(d => d.Images,
-                 o => o.MapFrom(s =>
-                     s.Images.Select(i => i.ImageUrl)))
-
              .ForMember(d => d.TreatmentRequestId,
                  o => o.MapFrom(s => s.TreatmentRequestId))
 

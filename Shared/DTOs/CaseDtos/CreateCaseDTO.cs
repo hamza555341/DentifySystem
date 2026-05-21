@@ -12,6 +12,6 @@ namespace Shared.DTOs.CaseDtos
         public Specialization RequiredSpecialization { get; set; }
         public string Description { get; set; } = null!;
         public string City { get; set; } = null!;
-        public List<IFormFile> Images { get; set; } = new();
+        public IFormFile Image { get; set; } =null!;
     }
 }

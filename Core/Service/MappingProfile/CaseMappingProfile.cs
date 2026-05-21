@@ -25,9 +25,8 @@ namespace Service.MappingProfile
         .ForMember(d => d.Status,
             o => o.MapFrom(s => s.Status.ToString()))
 
-        .ForMember(d => d.Images,
-            o => o.MapFrom(s =>
-                s.Images.Select(i => i.ImageUrl)));
+        .ForMember(d => d.Image,
+            o => o.MapFrom(s => s.ImageUrl));
 
         }
     }

@@ -48,9 +48,7 @@ namespace Persistence.DbContexts
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Case> Cases { get; set; }
-        public DbSet<CaseImage> CaseImages { get; set; }
         public DbSet<Report> Reports { get; set; }
-        public DbSet<ReportImage> ReportImages { get; set; }
         public DbSet<StudentRating> StudentRatings { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<TreatmentRequest> TreatmentRequests { get; set; }

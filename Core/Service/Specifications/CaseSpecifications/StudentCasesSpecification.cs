@@ -13,7 +13,6 @@ namespace Service.Specifications.CaseSpecifications
         public StudentCasesSpecification(int studentId)
             : base(c=>c.TreatmentRequests.Any(x=>x.StudentId==studentId && x.Status==TreatmentRequestStatus.Accepted ))
         {
-            AddInclude(c => c.Images);
             AddInclude(c => c.Patient);
             AddInclude(c=>c.TreatmentRequests);
             AddInclude(c => c.Patient.ApplicationUser);

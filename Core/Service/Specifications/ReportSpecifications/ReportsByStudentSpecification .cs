@@ -12,7 +12,6 @@ namespace Service.Specifications.ReportSpecifications
         public ReportsByStudentSpecification(int studentId)
             : base(r=>r.TreatmentRequest.StudentId==studentId)
         {
-            AddInclude(r => r.Images);
             AddInclude(x => x.TreatmentRequest);
             AddInclude(x => x.TreatmentRequest.Student.ApplicationUser);
             

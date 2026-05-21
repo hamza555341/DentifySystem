@@ -11,8 +11,7 @@ namespace Service.Specifications.CaseSpecifications
     {
         public PatientActiveCaseSpecification(int patientId)
             : base(c => c.PatientId == patientId &&
-                        c.Status != CaseStatus.Completed &&
-                        c.Status != CaseStatus.Rejected)
+                        c.Status != CaseStatus.Completed)
         {
         }
 }

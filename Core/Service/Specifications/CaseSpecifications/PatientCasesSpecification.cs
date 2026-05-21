@@ -12,7 +12,6 @@ namespace Service.Specifications.CaseSpecifications
         public PatientCasesSpecification(int patientId)
             : base(c => c.PatientId == patientId)
         {
-            AddInclude(c => c.Images);
             AddOrderByDesc(c => c.CreatedAt);
         }
     }

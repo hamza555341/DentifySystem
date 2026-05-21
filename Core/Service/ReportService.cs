@@ -73,23 +73,7 @@ namespace Service
                 TreatmentPlan = dto.TreatmentPlan,
                 Notes = dto.Notes,
                 CreatedAt = DateTime.UtcNow,
-                Images = new List<ReportImage>()
             };
-
-            if (dto.Images?.Any() == true)
-            {
-                foreach (var file in dto.Images)
-                {
-                    var path = await _attachmentService.UploadAsync("reports", file);
-                    if (path is null) continue;
-
-                    report.Images.Add(new ReportImage
-                    {
-                        ImageUrl = path,
-                        UploadedAt = DateTime.UtcNow
-                    });
-                }
-            }
 
             await _unitOfWork.GetRepository<Report, int>().AddAsync(report);
 
@@ -101,11 +85,6 @@ namespace Service
                 .GetByIdAsync(new ReportWithDetailsSpecification(report.Id));
 
             var response = _mapper.Map<ReportResponseDTO>(result!);
-
-            var baseUrl = _configuration["URLs:BaseURL"];
-            response.Images = result!.Images
-                .Select(i => $"{baseUrl}{i.ImageUrl}")
-                .ToList();
 
             return Result<ReportResponseDTO>.Ok(response);
         }
@@ -139,10 +118,7 @@ namespace Service
 
             var baseUrl = _configuration["URLs:BaseURL"];
             var response = _mapper.Map<ReportResponseDTO>(report);
-            response.Images = report.Images
-                .Select(i => $"{baseUrl}/images/reports/{i.ImageUrl}")
-                .ToList();
-
+  
             return Result<ReportResponseDTO>.Ok(response);
         }
 
@@ -163,9 +139,6 @@ namespace Service
             var response = reports.Select(r =>
             {
                 var dto = _mapper.Map<ReportResponseDTO>(r);
-                dto.Images = r.Images
-                    .Select(i => $"{baseUrl}{i.ImageUrl}")
-                    .ToList();
                 return dto;
             });
 

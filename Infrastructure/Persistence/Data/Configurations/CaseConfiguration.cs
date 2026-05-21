@@ -43,12 +43,6 @@ namespace Persistence.Data.Configurations
                    .HasForeignKey(t=>t.CaseId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasMany(x=>x.Images)
-                   .WithOne(i=>i.Case)
-                   .HasForeignKey(i=>i.CaseId)
-                   .OnDelete(DeleteBehavior.Cascade);
-
-
         }
     }
 }

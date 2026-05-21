@@ -12,7 +12,6 @@ namespace Service.Specifications.ReportSpecifications
         public ReportByCaseSpecification(int caseId)
             : base(r=>r.TreatmentRequest.CaseId==caseId)
         {
-            AddInclude(r => r.Images);
             AddInclude(r => r.TreatmentRequest);
             AddInclude(r => r.TreatmentRequest.Student);
             AddInclude(r => r.TreatmentRequest.Student.ApplicationUser);

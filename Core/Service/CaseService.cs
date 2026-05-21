@@ -40,18 +40,29 @@ namespace Service
             var patient = await _unitOfWork.GetRepository<Patient, int>()
                 .GetByIdAsync(new PatientByUserIdSpecification(userId));
 
+            if (patient is null) 
+            { 
+                return Error.NotFound("Patient.NotFound");
+            }
+
             var hasActiveCase = await _unitOfWork.GetRepository<Case, int>()
-                .GetAllAsync(new PatientActiveCaseSpecification(patient.Id));
+                .GetAllAsync(new PatientActiveCaseSpecification(patient!.Id));
 
             if (hasActiveCase.Any())
-                return Error.Validation("Case.ActiveExists", "You already have an active case");
+                return Error.Validation("Case.ActiveExists", "You already have an Pending case");
 
-            if (patient is null)
-                return Error.NotFound("Patient.NotFound");
+            if (dto.Image is null)
+                return Error.Validation(
+                    "Image.Required",
+                    "Image is required");
 
-            if (dto.Images is null || !dto.Images.Any())
-                return Error.Validation("Images.Required", "At least one image is required");
+            var imagePath = await _attachmentService
+                .UploadAsync("cases", dto.Image);
 
+            if (imagePath is null)
+                return Error.Validation(
+                    "Image.Invalid",
+                    "Invalid image");
             var caseEntity = new Case
             {
                 PatientId = patient.Id,
@@ -59,39 +70,36 @@ namespace Service
                 Description = dto.Description,
                 City = dto.City,
                 Status = CaseStatus.Pending,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ImageUrl = imagePath
             };
 
             await _unitOfWork.GetRepository<Case, int>().AddAsync(caseEntity);
             await _unitOfWork.SaveChangesAsync();
 
-            foreach (var file in dto.Images)
-            {
-                var path = await _attachmentService.UploadAsync("cases", file);
-                if (path is null) continue;
+            //foreach (var file in dto.Images)
+            //{
+            //    var path = await _attachmentService.UploadAsync("cases", file);
+            //    if (path is null) continue;
 
-                await _unitOfWork.GetRepository<CaseImage, int>().AddAsync(new CaseImage
-                {
-                    CaseId = caseEntity.Id,
-                    ImageUrl = path,
-                    ImageType = "fsdfsdf"
-                });
-            }
-
-            await _unitOfWork.SaveChangesAsync();
+            //    await _unitOfWork.GetRepository<CaseImage, int>().AddAsync(new CaseImage
+            //    {
+            //        CaseId = caseEntity.Id,
+            //        ImageUrl = path,
+            //        ImageType = "fsdfsdf"
+            //    });
+            //}
 
             var result = await _unitOfWork.GetRepository<Case, int>()
                 .GetByIdAsync(new CaseWithImagesSpecification(caseEntity.Id));
 
 
-            var baseUrl = _configuration["URLs:BaseURL"];
-            var caseResponse = _mapper.Map<CaseResponseDTO>(result!);
+            var dtoResult = _mapper.Map<CaseResponseDTO>(result);
 
-            caseResponse.Images = result!.Images
-                .Select(i => $"{baseUrl}{i.ImageUrl}")
-                .ToList();
+            dtoResult.Image =
+                $"{_configuration["URLs:BaseURL"]}{result!.ImageUrl}";
 
-            return Result<CaseResponseDTO>.Ok(caseResponse);
+            return Result<CaseResponseDTO>.Ok(dtoResult);
 
         }
 
@@ -112,60 +120,52 @@ namespace Service
             var response = cases.Select(c =>
             {
                 var dto = _mapper.Map<CaseResponseDTO>(c);
-                dto.Images = c.Images
-                    .Select(i => $"{baseUrl}{i.ImageUrl}")
-                    .ToList();
+                dto.Image = $"{baseUrl}{c.ImageUrl}";
                 return dto;
             });
 
             return Result<IEnumerable<CaseResponseDTO>>.Ok(response);
         }
 
-        public async Task<Result<IEnumerable<CaseResponseDTO>>> GetPatientCasesAsync(string userId)
+        public async Task<Result<IEnumerable<CaseResponseDTO>>> GetMyCasesAsync(
+            string userId,
+            string role)
         {
-            var patient = await _unitOfWork.GetRepository<Patient, int>()
-                .GetByIdAsync(new PatientByUserIdSpecification(userId));
+            IEnumerable<Case> cases;
 
-            if (patient is null)
-                return Error.NotFound("Patient.NotFound");
+            if (role == "Patient")
+            {
+                var patient = await _unitOfWork.GetRepository<Patient, int>()
+                    .GetByIdAsync(new PatientByUserIdSpecification(userId));
 
-            var cases = await _unitOfWork.GetRepository<Case, int>()
-                .GetAllAsync(new PatientCasesSpecification(patient.Id));
+                if (patient is null)
+                    return Error.NotFound("Patient.NotFound");
+
+                cases = await _unitOfWork.GetRepository<Case, int>()
+                    .GetAllAsync(new PatientCasesSpecification(patient.Id));
+            }
+            else if (role == "Student")
+            {
+                var student = await _unitOfWork.GetRepository<Student, int>()
+                    .GetByIdAsync(new StudentByUserIdSpecification(userId));
+
+                if (student is null)
+                    return Error.NotFound("Student.NotFound");
+
+                cases = await _unitOfWork.GetRepository<Case, int>()
+                    .GetAllAsync(new StudentCasesSpecification(student.Id));
+            }
+            else
+            {
+                return Error.Unauthorized("Invalid.Role");
+            }
 
             var baseUrl = _configuration["URLs:BaseURL"];
 
             var response = cases.Select(c =>
             {
                 var dto = _mapper.Map<CaseResponseDTO>(c);
-                dto.Images = c.Images
-                    .Select(i => $"{baseUrl}{i.ImageUrl}")
-                    .ToList();
-                return dto;
-            });
-
-            return Result<IEnumerable<CaseResponseDTO>>.Ok(response);
-        }
-
-
-        public async Task<Result<IEnumerable<CaseResponseDTO>>> GetStudentCasesAsync(string userId)
-        {
-            var student = await _unitOfWork.GetRepository<Student, int>()
-                .GetByIdAsync(new StudentByUserIdSpecification(userId));
-
-            if (student is null)
-                return Error.NotFound("Student.NotFound");
-
-            var cases = await _unitOfWork.GetRepository<Case, int>()
-                .GetAllAsync(new StudentCasesSpecification(student.Id));
-
-            var baseUrl = _configuration["URLs:BaseURL"];
-
-            var response = cases.Select(c =>
-            {
-                var dto = _mapper.Map<CaseResponseDTO>(c);
-                dto.Images = c.Images
-                    .Select(i => $"{baseUrl}{i.ImageUrl}")
-                    .ToList();
+                dto.Image = $"{baseUrl}{c.ImageUrl}";
                 return dto;
             });
 
@@ -183,45 +183,14 @@ namespace Service
             var baseUrl = _configuration["URLs:BaseURL"];
 
             var dto = _mapper.Map<CaseResponseDTO>(caseEntity);
-            dto.Images = caseEntity.Images
-                .Select(i => $"{baseUrl}{i.ImageUrl}")
-                .ToList();
+            dto.Image = $"{baseUrl}{caseEntity.ImageUrl}";
 
             return Result<CaseResponseDTO>.Ok(dto);
         }
 
-        public async Task<Result> ApproveCaseAsync(int caseId)
-        {
-            var caseRepo = _unitOfWork.GetRepository<Case, int>();
-            var caseEntity = await caseRepo.GetByIdAsync(caseId);
+  
 
-            if (caseEntity is null)
-                return Result.Failure(Error.NotFound("Case.NotFound"));
 
-            if (caseEntity.Status != CaseStatus.Pending)
-                return Result.Failure(Error.Validation("Invalid.Status", "Case is not pending"));
-
-            caseEntity.Status = CaseStatus.Approved;
-            caseRepo.Update(caseEntity);
-            await _unitOfWork.SaveChangesAsync();
-
-            return Result.Ok();
-        }
-
-        public async Task<Result> RejectCaseAsync(int caseId)
-        {
-            var caseRepo = _unitOfWork.GetRepository<Case, int>();
-            var caseEntity = await caseRepo.GetByIdAsync(caseId);
-
-            if (caseEntity is null)
-                return Result.Failure(Error.NotFound("Case.NotFound"));
-
-            caseEntity.Status = CaseStatus.Rejected;
-            caseRepo.Update(caseEntity);
-            await _unitOfWork.SaveChangesAsync();
-
-            return Result.Ok();
-        } 
         #endregion
 
 

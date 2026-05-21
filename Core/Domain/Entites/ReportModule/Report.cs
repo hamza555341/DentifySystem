@@ -21,7 +21,5 @@ namespace Domain.Entites.ReportModule
         public string TreatmentPlan { get; set; } = null!;
 
         public string? Notes { get; set; }
-
-        public ICollection<ReportImage> Images { get; set; } = new List<ReportImage>();
     }
 }

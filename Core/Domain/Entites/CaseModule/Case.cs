@@ -27,7 +27,8 @@ namespace Domain.Entites.CaseModule
 
         public Patient Patient { get; set; } = null!;
 
-        public ICollection<CaseImage> Images { get; set; } = new List<CaseImage>();
+        //public ICollection<CaseImage> Images { get; set; } = new List<CaseImage>();
+        public string ImageUrl { get; set; } = null!;
 
         public DateTime? LastUpdatedAt { get; set; }
 
