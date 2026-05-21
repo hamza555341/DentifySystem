@@ -7,18 +7,23 @@ using System.Threading.Tasks;
 
 namespace Service.Specifications.AppointmentSpecifications
 {
-    
-        public class AppointmentsByPatientSpecification : BaseSpecification<Appointment, int>
+    public class AppointmentsByPatientSpecification
+      : BaseSpecification<Appointment, int>
+    {
+        public AppointmentsByPatientSpecification(int patientId)
+            : base(a =>
+                a.TreatmentRequest.Case.PatientId == patientId &&
+                a.Status == AppointmentStatus.Confirmed)
         {
-            public AppointmentsByPatientSpecification(int patientId)
-                : base(a => a.TreatmentRequest.Case.PatientId == patientId)
-            {
-                AddInclude(a => a.TreatmentRequest);
-                AddInclude(a => a.TreatmentRequest.Case);
-                AddInclude(a => a.TreatmentRequest.Student);
+            AddInclude(a => a.TreatmentRequest);
+            AddInclude(a => a.TreatmentRequest.Student);
+            AddInclude(a => a.TreatmentRequest.Student.ApplicationUser);
+            AddInclude(a => a.TreatmentRequest.Case);
+            AddInclude(a => a.TreatmentRequest.Case.Patient);
+            AddInclude(a => a.TreatmentRequest.Case.Patient.ApplicationUser);
 
-                AddOrderByDesc(a => a.AppointmentDate);
-            }
+            AddOrderByDesc(a => a.AppointmentDate);
         }
-    
+    }
+
 }

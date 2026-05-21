@@ -6,9 +6,11 @@ using Domain.Entites.TreatmentRequestModule;
 using Domain.Interfaces;
 using Service.Abstraction;
 using Service.Specifications.CaseSpecifications;
+using Service.Specifications.StudentRatingSpecifications;
 using Service.Specifications.TreatmentRequestSpecificaition;
 using Shared.CommonResult;
 using Shared.DTOs.TreatmentRequestsDTOs;
+using Shared.DTOs.TreatmentRequestsDTOs.Shared.DTOs.TreatmentRequests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +29,7 @@ namespace Service
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
+
         public async Task<Result> AcceptRequestAsync(int requestId, string identityUserId)
         {
             var request =await _unitOfWork.GetRepository<TreatmentRequest, int>().GetByIdAsync(new TreatmentRequestWithDetailsSpecification(requestId));
@@ -42,8 +45,8 @@ namespace Service
 
                 if (patient is null || request.Case.PatientId != patient.Id)
                     return  Error.Unauthorized("Request.Unauthorized");
-
             }
+
             else
             {
                 var student = await _unitOfWork.GetRepository<Student,int>()
@@ -52,8 +55,21 @@ namespace Service
                 if (student is null || request.StudentId != student.Id)
                     return Error.Unauthorized("Request.Unauthorized");
             }
+
             request.Status = TreatmentRequestStatus.Accepted;
+         
+
             request.Case.Status = CaseStatus.Assigned;
+               
+
+            var others = await _unitOfWork.GetRepository<TreatmentRequest,int>()
+                .GetAllAsync(new TreatmentRequestsByCaseSpecification(request.CaseId));
+
+            foreach (var r in others)
+            {
+                if (r.Id != request.Id && r.Status == TreatmentRequestStatus.Pending)
+                    r.Status = TreatmentRequestStatus.Rejected;
+            }
 
             _unitOfWork.GetRepository<TreatmentRequest,int>().Update(request);
             await _unitOfWork.SaveChangesAsync();
@@ -62,28 +78,57 @@ namespace Service
 
         }
 
-        public async Task<Result<IEnumerable<TreatmentRequestResponseDTO>>> GetRequestsByCaseAsync(int caseId, string identityUserId)
+        public async Task<Result<IEnumerable<TreatmentRequestResponseDTO>>> GetRequestsByCaseAsync( string identityUserId)
         {
-            var patient = await _unitOfWork.GetRepository<Patient,int>()
-            .GetByIdAsync(new PatientByUserIdSpecification(identityUserId));
+            var patient = await _unitOfWork.GetRepository<Patient, int>()
+                .GetByIdAsync(new PatientByUserIdSpecification(identityUserId));
 
             if (patient is null)
                 return Error.NotFound("Patient.NotFound");
 
-            var case_ = await _unitOfWork.GetRepository<Case,int>()
-                .GetByIdAsync(new CaseWithImagesSpecification(caseId));
+            var activeCase = (await _unitOfWork
+       .GetRepository<Case, int>()
+       .GetAllAsync(
+           new PatientActiveCaseSpecification(patient.Id)))
+       .FirstOrDefault();
 
+            if (activeCase is null)
+                return Error.NotFound("Case.NoActiveCase");
 
-            if (case_ is null)
+            if (activeCase.Status == CaseStatus.Assigned)
+                return Result<IEnumerable<TreatmentRequestResponseDTO>>
+                    .Ok([]);
+
+            var caseEntity = await _unitOfWork.GetRepository<Case, int>()
+                .GetByIdAsync(new CaseWithImagesSpecification(activeCase.Id));
+
+            if (caseEntity is null)
                 return Error.NotFound("Case.NotFound");
 
-            if (case_.PatientId != patient.Id)
+            if (caseEntity.PatientId != patient.Id)
                 return Error.Unauthorized("Case.Unauthorized");
 
-            var requests = await _unitOfWork.GetRepository<TreatmentRequest,int>()
-                .GetAllAsync(new TreatmentRequestsByCaseSpecification(caseId));
+            var requests = await _unitOfWork.GetRepository<TreatmentRequest, int>()
+                .GetAllAsync(new TreatmentRequestsByCaseSpecification(activeCase.Id));
 
-            var result = _mapper.Map<IEnumerable<TreatmentRequestResponseDTO>>(requests);
+            var result = new List<TreatmentRequestResponseDTO>();
+
+            foreach (var request in requests)
+            {
+                var ratings = await _unitOfWork.GetRepository<StudentRating, int>()
+                    .GetAllAsync(new RatingsByStudentSpecification(request.StudentId));
+
+                var ratingList = ratings.ToList();
+                var average = ratingList.Any()
+                    ? Math.Round(ratingList.Average(r => r.Rating), 1)
+                    : 0.0;
+
+                var dto = _mapper.Map<TreatmentRequestResponseDTO>(request);
+                dto.AverageRating = average;
+                dto.TotalRatings = ratingList.Count;
+
+                result.Add(dto);
+            }
 
             return Result<IEnumerable<TreatmentRequestResponseDTO>>.Ok(result);
         }
@@ -96,7 +141,7 @@ namespace Service
 
             var case0 = await _unitOfWork.GetRepository<Case, int>().GetByIdAsync( caseId);
 
-            if (case0.Status != CaseStatus.Approved)
+            if (case0.Status != CaseStatus.Pending)
                 return Error.Failure("Case.NotAvailable");
 
             if (case0 == null) return Error.NotFound("Case.NotFound");
@@ -180,7 +225,7 @@ namespace Service
             if (case0 is null)
                 return Error.NotFound("Case.NotFound");
 
-            if (case0.Status != CaseStatus.Approved)
+            if (case0.Status != CaseStatus.Pending)
                 return Error.Failure("The case Is not approved ");
 
             var existingRequest = await _unitOfWork.GetRepository<TreatmentRequest, int>()
@@ -206,5 +251,33 @@ namespace Service
 
 
         }
+
+        public async Task<Result<IEnumerable<StudentRequestResponseDTO>>>GetStudentRequestsAsync(string identityUserId)
+        {
+            var student = await _unitOfWork
+                .GetRepository<Student, int>()
+                .GetByIdAsync(
+                    new StudentByUserIdSpecification(
+                        identityUserId));
+
+            if (student is null)
+                return Error.NotFound(
+                    "Student.NotFound");
+
+            var requests = await _unitOfWork
+                .GetRepository<TreatmentRequest, int>()
+                .GetAllAsync(
+                    new StudentPendingRequestsSpecification(
+                        student.Id));
+
+            var result = _mapper.Map
+                <IEnumerable<StudentRequestResponseDTO>>
+                (requests);
+
+            return Result<
+                IEnumerable<StudentRequestResponseDTO>>
+                .Ok(result);
+        }
+           
     }
 }

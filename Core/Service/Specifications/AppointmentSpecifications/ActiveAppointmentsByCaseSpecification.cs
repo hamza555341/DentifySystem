@@ -18,6 +18,11 @@ namespace Service.Specifications.AppointmentSpecifications
             )
         {
             AddInclude(a => a.TreatmentRequest);
+            AddInclude(a => a.TreatmentRequest.Student);
+            AddInclude(a => a.TreatmentRequest.Student.ApplicationUser);
+            AddInclude(a => a.TreatmentRequest.Case);
+            AddInclude(a => a.TreatmentRequest.Case.Patient);
+            AddInclude(a => a.TreatmentRequest.Case.Patient.ApplicationUser);
             AddOrderByDesc(a => a.AppointmentDate);
         }
     }

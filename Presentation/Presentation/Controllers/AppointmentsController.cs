@@ -29,15 +29,13 @@ namespace Presentation.Controllers
             return HandleResult(await _appointmentService.ProposeAppointmentsAsync(UserId!,dto));
         }
 
-
-
-        [HttpPut("{CaseId}/Reject")]
-        [Authorize(Roles ="Patient")]
-        public async Task<IActionResult> RejectAllAppointments(int caseId)
-        {
-            var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return HandleResult(await _appointmentService.RejectAllAppointmentsAsync(caseId, UserId!));
-        }
+        //[HttpPut("{CaseId}/Reject")]
+        //[Authorize(Roles ="Patient")]
+        //public async Task<IActionResult> RejectAllAppointments(int caseId)
+        //{
+        //    var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    return HandleResult(await _appointmentService.RejectAllAppointmentsAsync(caseId, UserId!));
+        //}
 
 
         [HttpPut("{appointmentId}/Select")]
@@ -55,6 +53,7 @@ namespace Presentation.Controllers
             var UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return HandleResult(await _appointmentService.GetPatientAppointmentsAsync(UserId!));
         }
+
 
         [HttpGet("My/Student")]
         [Authorize(Roles = "Student")]

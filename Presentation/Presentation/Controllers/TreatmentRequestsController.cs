@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Abstraction;
+using Shared.DTOs.TreatmentRequestsDTOs;
+using Shared.DTOs.TreatmentRequestsDTOs.Shared.DTOs.TreatmentRequests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,8 +26,9 @@ namespace Presentation.Controllers
         {
             var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _treatmentRequestService.StudentSendRequestAsync(caseId, identityUserId);
-            return result.IsSuccess ? Ok() : BadRequest(result.Errors);
+            return  HandleResult(result);
         }
+
         [HttpPost("patient/send/{studentId}/{caseId}")]
         [Authorize(Roles = "Patient")]
 
@@ -46,14 +49,31 @@ namespace Presentation.Controllers
             return result.IsSuccess ? Ok() : BadRequest(result.Errors);
         }
 
-        [HttpGet("case/{caseId}")]
+        [HttpGet("cases")]
         [Authorize(Roles = "Patient")]
-        public async Task<IActionResult> GetRequestsByCase(int caseId)
+        public async Task<ActionResult<IEnumerable<TreatmentRequestResponseDTO>>> GetRequestsByCase()
         {
             var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var result = await _treatmentRequestService.GetRequestsByCaseAsync(caseId, identityUserId);
-            return result.IsSuccess ? Ok() : BadRequest(result.Errors);
+            var result = await _treatmentRequestService.GetRequestsByCaseAsync( identityUserId);
+            return HandleResult(result);
         }
+
+        [HttpGet("my/student")]
+        [Authorize(Roles = "Student")]
+        public async Task<ActionResult<
+    IEnumerable<StudentRequestResponseDTO>>>
+    GetMyStudentRequests()
+        {
+            var identityUserId =
+                User.FindFirstValue(
+                    ClaimTypes.NameIdentifier)!;
+
+            return HandleResult(
+                await _treatmentRequestService
+                    .GetStudentRequestsAsync(
+                        identityUserId));
+        }
+
 
     }
 }

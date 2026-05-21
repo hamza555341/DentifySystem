@@ -15,6 +15,9 @@ namespace Service.MappingProfile
         {
             CreateMap<Appointment, AppointmentResponseDTO>()
 
+                      .ForMember(d => d.CaseId,
+                o => o.MapFrom(s => s.TreatmentRequest.CaseId))
+
                 // Patient Name
                 .ForMember(d => d.PatientName,
                     o => o.MapFrom(s => s.TreatmentRequest.Case.Patient.ApplicationUser.DisplayName))
@@ -38,6 +41,9 @@ namespace Service.MappingProfile
                 // الباقي يتحدد في السيرفيس
                 .ForAllMembers(opts =>
                     opts.Condition((src, dest, srcMember) => srcMember != null));
+
+
+
         }
     }
 }
