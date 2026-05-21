@@ -29,7 +29,7 @@ namespace Service.Abstraction
         Task<Result> ForgetPasswordAsync(ForgotPasswordDTO forgotPasswordDTO);  
 
         Task<Result> ResetPasswordAsync(ResetPasswordDTO resetPasswordDTO);
-        Task<Result> ConfirmEmailAsync(ConfirmEmailDTO confirmEmailDTO);
+        //Task<Result> ConfirmEmailAsync(ConfirmEmailDTO confirmEmailDTO);
 
 
 

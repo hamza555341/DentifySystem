@@ -74,11 +74,11 @@ namespace Presentation.Controllers.Authentication
             return Ok(await _authenticationService.ForgetPasswordAsync(dto));
         }
 
-        [HttpGet("confirmemail")]
-        public async Task<IActionResult> ConfirmEmail([FromQuery]ConfirmEmailDTO dto)
-        {
-            return Ok(await _authenticationService.ConfirmEmailAsync(dto));
-        }
+        //[HttpGet("confirmemail")]
+        //public async Task<IActionResult> ConfirmEmail([FromQuery]ConfirmEmailDTO dto)
+        //{
+        //    return Ok(await _authenticationService.ConfirmEmailAsync(dto));
+        //}
 
 
     }

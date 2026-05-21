@@ -9,10 +9,10 @@ namespace Service.Specifications.StudentSpecification
 {
     public class AvailableStudentsByCaseSpecification : BaseSpecification<Student, int>
     {
-        public AvailableStudentsByCaseSpecification(Specialization specialization, string? city=null)
+        public AvailableStudentsByCaseSpecification(Specialization specialization)
             : base(s =>
                         s.IsActive &&
-                        s.City == city &&
+                        //s.City == city &&
                         s.Specializations.HasFlag(specialization))
         {
             AddInclude(s => s.ApplicationUser);

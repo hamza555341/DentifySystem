@@ -30,14 +30,7 @@ namespace Presentation.Controllers
             return HandleResult(await _caseService.CreateCaseAsync(userId!, dto));
         }
 
-        [HttpGet("my")]
-        [Authorize(Roles = "Patient")]
-        public async Task<ActionResult<IEnumerable<CaseResponseDTO>>> GetMyCases()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return HandleResult(await _caseService.GetPatientCasesAsync(userId!));
-        }
-
+   
         // Student
         [HttpGet("available")]
         [Authorize(Roles = "Student")]
@@ -48,36 +41,27 @@ namespace Presentation.Controllers
             return HandleResult(result);
         }
 
-        [HttpGet("assigned")]
-        [Authorize(Roles = "Student")]
-        public async Task<ActionResult<IEnumerable<CaseResponseDTO>>> GetAssignedCases()
+
+
+        // Shared
+        [HttpGet("my-cases")]
+        [Authorize(Roles = "Patient,Student")]
+        public async Task<ActionResult<IEnumerable<CaseResponseDTO>>> GetMyCases()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return HandleResult(await _caseService.GetStudentCasesAsync(userId!));
+            var role = User.FindFirstValue(ClaimTypes.Role);
+
+            return HandleResult(
+                await _caseService.GetMyCasesAsync(userId!, role!)
+            );
         }
 
-       
-        // Shared
+
         [HttpGet("{id}")]
         [Authorize]
         public async Task<ActionResult<CaseResponseDTO>> GetCaseById(int id)
         {
             return HandleResult(await _caseService.GetCaseByIdAsync(id));
-        }
-
-        // Admin
-        [HttpPut("{id}/approve")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ApproveCase(int id)
-        {
-            return HandleResult(await _caseService.ApproveCaseAsync(id));
-        }
-
-        [HttpPut("{id}/reject")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> RejectCase(int id)
-        {
-            return HandleResult(await _caseService.RejectCaseAsync(id));
         }
 
 

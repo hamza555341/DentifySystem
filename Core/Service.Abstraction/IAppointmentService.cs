@@ -28,9 +28,9 @@ namespace Service.Abstraction
         // المريض يختار موعد → الباقي يتكنسل تلقائي
 
 
-        Task<Result> RejectAllAppointmentsAsync(
-            int treatmentRequestId,
-            string patientUserId);
+        //Task<Result> RejectAllAppointmentsAsync(
+        //    int treatmentRequestId,
+        //    string patientUserId);
         // المريض يرفض كل المقترحات
 
 

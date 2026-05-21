@@ -1,5 +1,6 @@
 ﻿using Shared.CommonResult;
 using Shared.DTOs.TreatmentRequestsDTOs;
+using Shared.DTOs.TreatmentRequestsDTOs.Shared.DTOs.TreatmentRequests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,9 +16,9 @@ namespace Service.Abstraction
         Task<Result> AcceptRequestAsync(int requestId, string identityUserId);
         Task<Result> RejectUserAsync(int requestId, string identityUserId);
 
-        Task<Result<IEnumerable<TreatmentRequestResponseDTO>>> GetRequestsByCaseAsync(int caseId, string identityUserId);
+        Task<Result<IEnumerable<TreatmentRequestResponseDTO>>> GetRequestsByCaseAsync(string identityUserId);
 
-
-
+        Task<Result<IEnumerable<StudentRequestResponseDTO>>> GetStudentRequestsAsync(string identityUserId);
+   
     }
 }

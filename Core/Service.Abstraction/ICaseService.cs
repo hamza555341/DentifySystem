@@ -14,14 +14,11 @@ namespace Service.Abstraction
 
         Task<Result<IEnumerable<CaseResponseDTO>>> GetAvailableCasesAsync(string? city, string identityUserId);
 
-        Task<Result<IEnumerable<CaseResponseDTO>>> GetPatientCasesAsync(string userId);
-
-        Task<Result<IEnumerable<CaseResponseDTO>>> GetStudentCasesAsync(string userId);
+        Task<Result<IEnumerable<CaseResponseDTO>>> GetMyCasesAsync(
+                                                                      string userId,
+                                                                       string role);
 
         Task<Result<CaseResponseDTO>> GetCaseByIdAsync(int caseId);
 
-        Task<Result> ApproveCaseAsync(int caseId);
-
-        Task<Result> RejectCaseAsync(int caseId);
     }
 }

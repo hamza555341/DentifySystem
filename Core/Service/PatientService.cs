@@ -44,7 +44,7 @@ namespace Service
                 return Error.Unauthorized("Case.Unauthorized");
 
             var students = await _unitOfWork.GetRepository<Student, int>()
-                .GetAllAsync(new AvailableStudentsByCaseSpecification(case_.RequiredSpecialization, case_?.City));
+                .GetAllAsync(new AvailableStudentsByCaseSpecification(case_.RequiredSpecialization));
 
             var result = _mapper.Map<IEnumerable<StudentResponseDTO>>(students);
 

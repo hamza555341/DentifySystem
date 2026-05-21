@@ -9,6 +9,7 @@ namespace Domain.Entites.StudentModule
     [Flags]
     public enum Specialization
     {
+        None=0,
         DentalCaries = 1,
         PeriodontalDiseas = 2,
         Hypodontia = 4,

@@ -68,8 +68,8 @@ namespace Service
             if (!isPassword)
                 return Error.InValidCerdentials("User.InvalidCredentials");
 
-            if (!user.EmailConfirmed)
-                return Error.Validation("Email.NotConfirmed", "Please confirm your email first");
+            //if (!user.EmailConfirmed)
+            //    return Error.Validation("Email.NotConfirmed", "Please confirm your email first");
 
             var roles = await _userManager.GetRolesAsync(user);
 
@@ -118,7 +118,7 @@ namespace Service
             {
                 City = dto.City,
                 UniEmail = dto.UniEmail,
-                IsActive = false,
+                IsActive = true,
                 IdentityUserId = user.Id,
                 CreatedAt = DateTime.UtcNow,
                 Specializations = dto.Specializations.Aggregate((a, b) => a | b)
@@ -128,34 +128,34 @@ namespace Service
             await _unitOfWork.SaveChangesAsync();
 
 
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            //var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-            var encodedToken = WebEncoders.Base64UrlEncode(
-                Encoding.UTF8.GetBytes(token));
+            // var encodedToken = WebEncoders.Base64UrlEncode(
+            // Encoding.UTF8.GetBytes(token));
 
-            var baseUrl = _configuration["URLs:BaseURL"];
+            // var baseUrl = _configuration["URLs:BaseURL"];
 
-            var confirmLink = $"{baseUrl}api/Authentication/confirmemail" +
-                              $"?userId={user.Id}&token={encodedToken}";
+            //var confirmLink = $"{baseUrl}api/Authentication/confirmemail" +
+            // $"?userId={user.Id}&token={encodedToken}";
 
-            var body = $@"
-        <h2>Confirm Your Email</h2>
-        <p>Click the link below to confirm your account:</p>
-        <a href='{confirmLink}'>Confirm Email</a>";
+            //var body = $@"
+            //<h2>Confirm Your Email</h2>
+            //<p>Click the link below to confirm your account:</p>
+            //<a href='{confirmLink}'>Confirm Email</a>";
 
-            await _emailService.SendEmailAsync(user.Email!, "Confirm Email", body);
+            // await _emailService.SendEmailAsync(user.Email!, "Confirm Email", body);
 
-            return Result<UserDTO>.Ok(new UserDTO(
-                user.Email!,
-                user.DisplayName,
-                "Check Your Email First" // مفيش token
-            ));
+            //    return Result<UserDTO>.Ok(new UserDTO(
+            //user.Email!,
+            // user.DisplayName,
+            // "Check Your Email First" // مفيش token
+            //    ));
 
-            //var roles = await _userManager.GetRolesAsync(user);
-            //var token = await _tokenService.CreateTokenAsync(
-            //    user.Id, user.Email!, user.UserName!, roles);
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = await _tokenService.CreateTokenAsync(
+                user.Id, user.Email!, user.UserName!, roles);
 
-            //return new UserDTO(user.Email!, user.DisplayName, token);
+            return new UserDTO(user.Email!, user.DisplayName, token);
         }
 
         public async Task<Result<UserDTO>> RegisterPatientAsync(RegisterPatientDTO dto)
@@ -182,9 +182,7 @@ namespace Service
 
             var patient = new Patient
             {
-          
-                City = dto.City,
-                
+                City = dto.City,               
                 IdentityUserId = user.Id,
                 CreatedAt = DateTime.UtcNow
             };
@@ -202,37 +200,37 @@ namespace Service
 
 
 
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            //    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-            var encodedToken = WebEncoders.Base64UrlEncode(
-                Encoding.UTF8.GetBytes(token));
+            //    var encodedToken = WebEncoders.Base64UrlEncode(
+            //        Encoding.UTF8.GetBytes(token));
 
-            var baseUrl = _configuration["URLs:BaseURL"];
+            //    var baseUrl = _configuration["URLs:BaseURL"];
 
-            var confirmLink = $"{baseUrl}api/Authentication/confirmemail" +
-                              $"?userId={user.Id}&token={encodedToken}";
+            //    var confirmLink = $"{baseUrl}api/Authentication/confirmemail" +
+            //                      $"?userId={user.Id}&token={encodedToken}";
 
-            var body = $@"
-        <h2>Confirm Your Email</h2>
-        <p>Click the link below to confirm your account:</p>
-        <a href='{confirmLink}'>Confirm Email</a>";
+            //    var body = $@"
+            //<h2>Confirm Your Email</h2>
+            //<p>Click the link below to confirm your account:</p>
+            //<a href='{confirmLink}'>Confirm Email</a>";
 
-            await _emailService.SendEmailAsync(user.Email!, "Confirm Email", body);
+            //    await _emailService.SendEmailAsync(user.Email!, "Confirm Email", body);
 
-            return Result<UserDTO>.Ok(new UserDTO(
-                user.Email!,
-                user.DisplayName,
-                "Check Your Email First" // مفيش token
-            ));
-
-
+            //    return Result<UserDTO>.Ok(new UserDTO(
+            //        user.Email!,
+            //        user.DisplayName,
+            //        "Check Your Email First" // مفيش token
+            //    ));
 
 
-            //var roles = await _userManager.GetRolesAsync(user);
-            //var token = await _tokenService.CreateTokenAsync(
-            //    user.Id, user.Email!, user.UserName!, roles);
 
-            //return new UserDTO(user.Email!, user.DisplayName, token);
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var token = await _tokenService.CreateTokenAsync(
+                user.Id, user.Email!, user.UserName!, roles);
+
+            return new UserDTO(user.Email!, user.DisplayName, token);
         }
 
         public async Task<Result> ForgetPasswordAsync(ForgotPasswordDTO dto)
@@ -299,37 +297,37 @@ namespace Service
             return Result.Ok();
         }
 
-        public async Task<Result> ConfirmEmailAsync(ConfirmEmailDTO dto)
-        {
-            var user = await _userManager.FindByIdAsync(dto.UserId);
+        //public async Task<Result> ConfirmEmailAsync(ConfirmEmailDTO dto)
+        //{
+        //    var user = await _userManager.FindByIdAsync(dto.UserId);
 
-            if (user is null)
-                return Result.Failure(Error.NotFound("User.NotFound"));
+        //    if (user is null)
+        //        return Result.Failure(Error.NotFound("User.NotFound"));
 
-            if (user.EmailConfirmed)
-                return Result.Failure(Error.Validation("Email.AlreadyConfirmed", "Email is already confirmed"));
+        //    if (user.EmailConfirmed)
+        //        return Result.Failure(Error.Validation("Email.AlreadyConfirmed", "Email is already confirmed"));
 
-            string decodedToken;
+        //    string decodedToken;
 
-            try
-            {
-                decodedToken = Encoding.UTF8.GetString(
-                    WebEncoders.Base64UrlDecode(dto.Token));
-            }
-            catch
-            {
-                return Result.Failure(Error.Validation("Token.Invalid", "Invalid token format"));
-            }
+        //    try
+        //    {
+        //        decodedToken = Encoding.UTF8.GetString(
+        //            WebEncoders.Base64UrlDecode(dto.Token));
+        //    }
+        //    catch
+        //    {
+        //        return Result.Failure(Error.Validation("Token.Invalid", "Invalid token format"));
+        //    }
 
-            var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
+        //    var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
 
-            if (!result.Succeeded)
-                return Result.Failure(result.Errors
-                    .Select(e => Error.Validation(e.Code, e.Description))
-                    .ToList());
+        //    if (!result.Succeeded)
+        //        return Result.Failure(result.Errors
+        //            .Select(e => Error.Validation(e.Code, e.Description))
+        //            .ToList());
 
-            return Result.Ok();
-        }
+        //    return Result.Ok();
+        //}
     }
 }
 

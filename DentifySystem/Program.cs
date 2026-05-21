@@ -105,6 +105,7 @@ namespace DentifySystem
             builder.Services.AddScoped<ITreatmentRequestService, TreatmentRequestService>();
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<IPatientService, PatientService>();
+            builder.Services.AddScoped<IAccountService,AccountService>();
 
 
             builder.Services.AddAuthentication(options =>

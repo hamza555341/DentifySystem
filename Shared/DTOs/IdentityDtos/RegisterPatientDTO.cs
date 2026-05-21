@@ -14,7 +14,5 @@ namespace Shared.DTOs.IdentityDtos
         string FullName,
         [Phone]string PhoneNumber,
         string City
-       
-
     );
 }

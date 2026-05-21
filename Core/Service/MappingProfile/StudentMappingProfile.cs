@@ -19,7 +19,9 @@ namespace Service.MappingProfile
                     Enum.GetValues<Specialization>()
                         .Where(s => src.Specializations.HasFlag(s))
                         .Select(s => s.ToString())
-                        .ToList()));
+                        .ToList()))
+                .ForMember(dest => dest.ProfileImageUrl, opt => opt.MapFrom(src => src.ProfileImageUrl));
+                
         }
     }
 }
