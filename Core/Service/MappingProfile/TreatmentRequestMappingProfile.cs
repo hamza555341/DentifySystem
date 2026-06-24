@@ -22,8 +22,8 @@ namespace Service.MappingProfile
          o => o.MapFrom(s => s.Student.Id))
      .ForMember(d => d.StudentName,
          o => o.MapFrom(s => s.Student.ApplicationUser.DisplayName))
-     .ForMember(d => d.StudentCity,
-         o => o.MapFrom(s => s.Student.City))
+     .ForMember(d => d.StudentUniversityName,
+         o => o.MapFrom(s => s.Student.UniversityName))
      .ForMember(d => d.StudentPhoneNumber,
          o => o.MapFrom(s => s.Student.ApplicationUser.PhoneNumber))
      .ForMember(d => d.StudentProfileImageUrl,
@@ -48,8 +48,8 @@ namespace Service.MappingProfile
         o => o.MapFrom(
             s => s.Case.Patient.ApplicationUser.DisplayName))
 
-    .ForMember(d => d.CaseDescription,
-        o => o.MapFrom(s => s.Case.Description))
+    //.ForMember(d => d.CaseDescription,
+    //    o => o.MapFrom(s => s.Case.Description))
 
     .ForMember(d => d.City,
         o => o.MapFrom(s => s.Case.City))

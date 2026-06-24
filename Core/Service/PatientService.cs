@@ -26,7 +26,8 @@ namespace Service
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        public async Task<Result<IEnumerable<StudentResponseDTO>>> GetAvailableStudentsAsync(int caseId, string identityUserId)
+        public async Task<Result<IEnumerable<StudentResponseDTO>>> GetAvailableStudentsAsync(
+           int caseId, string identityUserId, string? universityName = null)
         {
             var patient = await _unitOfWork.GetRepository<Patient, int>()
                 .GetByIdAsync(new PatientByUserIdSpecification(identityUserId));
@@ -34,21 +35,22 @@ namespace Service
             if (patient is null)
                 return Error.NotFound("Patient.NotFound");
 
-            var case_ = await _unitOfWork.GetRepository<Case, int>()
+            var caseEntity = await _unitOfWork.GetRepository<Case, int>()
                 .GetByIdAsync(new CaseWithImagesSpecification(caseId));
 
-            if (case_ is null)
+            if (caseEntity is null)
                 return Error.NotFound("Case.NotFound");
 
-            if (case_.PatientId != patient.Id)
+            if (caseEntity.PatientId != patient.Id)
                 return Error.Unauthorized("Case.Unauthorized");
 
             var students = await _unitOfWork.GetRepository<Student, int>()
-                .GetAllAsync(new AvailableStudentsByCaseSpecification(case_.RequiredSpecialization));
+                .GetAllAsync(new AvailableStudentsByCaseSpecification(
+                    caseEntity.RequiredSpecialization,
+                    universityName));
 
-            var result = _mapper.Map<IEnumerable<StudentResponseDTO>>(students);
-
-            return Result<IEnumerable<StudentResponseDTO>>.Ok(result);
+            return Result<IEnumerable<StudentResponseDTO>>.Ok(
+                _mapper.Map<IEnumerable<StudentResponseDTO>>(students));
         }
     }
 }

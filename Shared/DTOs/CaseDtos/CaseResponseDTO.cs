@@ -11,7 +11,6 @@ namespace Shared.DTOs.CaseDtos
     {
         public int Id { get; set; }
         public string SpecidRequiredSpecialization { get; set; } = null!;
-        public string Description { get; set; } = null!;
         public string City { get; set; } = null!;
         public string Status { get; set; } = null!;
         public DateTime CreatedAt { get; set; }

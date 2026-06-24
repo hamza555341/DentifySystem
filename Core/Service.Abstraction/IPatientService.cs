@@ -10,6 +10,7 @@ namespace Service.Abstraction
 {
     public interface IPatientService
     {
-        Task<Result<IEnumerable<StudentResponseDTO>>> GetAvailableStudentsAsync(int caseId, string identityUserId);
+        Task<Result<IEnumerable<StudentResponseDTO>>> GetAvailableStudentsAsync(
+            int caseId, string identityUserId, string? universityName = null);
     }
 }
