@@ -9,9 +9,11 @@ namespace Shared.DTOs.CaseDtos
 {
     public class CreateCaseDTO
     {
-        public Specialization RequiredSpecialization { get; set; }
-        public string Description { get; set; } = null!;
+        public IFormFile? Image { get; set; }
+        public string? SymptomsText { get; set; }
+        public string? PainDuration { get; set; }
+        public string? ChronicDiseases { get; set; }
+        //public string Description { get; set; } = null!;
         public string City { get; set; } = null!;
-        public IFormFile Image { get; set; } =null!;
     }
 }

@@ -34,7 +34,7 @@ namespace Presentation.Controllers
         // Student
         [HttpGet("available")]
         [Authorize(Roles = "Student")]
-        public async Task<ActionResult<IEnumerable<CaseResponseDTO>>> GetAvailableCases([FromQuery] string? city)
+        public async Task<ActionResult<IEnumerable<CaseResponseDTO>>> GetAvailableCases([FromQuery] string? city=null)
         {
             var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _caseService.GetAvailableCasesAsync(city, identityUserId);

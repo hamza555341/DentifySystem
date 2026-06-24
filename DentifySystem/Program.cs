@@ -71,9 +71,13 @@ namespace DentifySystem
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
 
-            //builder.Services.AddIdentityCore<ApplicationUser>()
-            //    .AddRoles<IdentityRole>()
-            //    .AddEntityFrameworkStores<DentifyDbContext>();
+            builder.Services.AddHttpClient<IAiDiagnosisService, AiDiagnosisService>(client =>
+            {
+                client.BaseAddress = new Uri(
+                    builder.Configuration["AiService:BaseUrl"]!);
+                client.Timeout = TimeSpan.FromSeconds(60);
+            });
+
 
 
             builder.Services.AddHangfire(config =>
