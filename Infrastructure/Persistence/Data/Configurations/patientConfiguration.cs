@@ -15,14 +15,6 @@ namespace Persistence.Data.Configurations
         {
             builder.ToTable("Patients");
 
-          
-            builder.Property(p => p.City)
-                   .IsRequired()
-                   .HasMaxLength(100);
-
-            builder.Property(p => p.ProfileImageUrl)
-                   .HasMaxLength(500);
-
             builder.HasOne(p => p.ApplicationUser)
             .WithOne()
             .HasForeignKey<Patient>(p => p.IdentityUserId)

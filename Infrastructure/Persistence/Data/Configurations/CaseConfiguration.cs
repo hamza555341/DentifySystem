@@ -20,9 +20,9 @@ namespace Persistence.Data.Configurations
                    .IsRequired()
                    .HasMaxLength(200);
 
-            builder.Property(c => c.Description)
-                   .IsRequired()
-                   .HasMaxLength(2000);
+            //builder.Property(c => c.Description)
+            //       .IsRequired()
+            //       .HasMaxLength(2000);
 
             builder.Property(c => c.City)
                    .IsRequired()
