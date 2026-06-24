@@ -7,6 +7,7 @@ using Domain.Interfaces;
 using Service.Abstraction;
 using Service.Specifications.CaseSpecifications;
 using Service.Specifications.StudentRatingSpecifications;
+using Service.Specifications.StudentSpecification;
 using Service.Specifications.TreatmentRequestSpecificaition;
 using Shared.CommonResult;
 using Shared.DTOs.TreatmentRequestsDTOs;
@@ -278,6 +279,21 @@ namespace Service
                 IEnumerable<StudentRequestResponseDTO>>
                 .Ok(result);
         }
-           
+
+        public async Task<Result<IEnumerable<StudentRequestResponseDTO>>> GetPatientRequestsToStudentAsync(string identityUserId)
+        {
+            var student = await _unitOfWork.GetRepository<Student, int>()
+                .GetByIdAsync(new StudentByUserIdSpecification(identityUserId));
+
+            if (student is null)
+                return Error.NotFound("Student.NotFound");
+
+            var requests = await _unitOfWork.GetRepository<TreatmentRequest, int>()
+                .GetAllAsync(new PatientRequestsToStudentSpecification(student.Id));
+
+            var result = _mapper.Map<IEnumerable<StudentRequestResponseDTO>>(requests);
+            return Result<IEnumerable<StudentRequestResponseDTO>>.Ok(result);
+        }
+
     }
 }

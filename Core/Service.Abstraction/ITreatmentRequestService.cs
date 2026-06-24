@@ -19,6 +19,8 @@ namespace Service.Abstraction
         Task<Result<IEnumerable<TreatmentRequestResponseDTO>>> GetRequestsByCaseAsync(string identityUserId);
 
         Task<Result<IEnumerable<StudentRequestResponseDTO>>> GetStudentRequestsAsync(string identityUserId);
-   
+
+        Task<Result<IEnumerable<StudentRequestResponseDTO>>> GetPatientRequestsToStudentAsync(string identityUserId);
+
     }
 }

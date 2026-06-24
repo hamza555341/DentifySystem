@@ -61,8 +61,7 @@ namespace Presentation.Controllers
         [HttpGet("my/student")]
         [Authorize(Roles = "Student")]
         public async Task<ActionResult<
-    IEnumerable<StudentRequestResponseDTO>>>
-    GetMyStudentRequests()
+    IEnumerable<StudentRequestResponseDTO>>> GetMyStudentRequests()
         {
             var identityUserId =
                 User.FindFirstValue(
@@ -72,6 +71,24 @@ namespace Presentation.Controllers
                 await _treatmentRequestService
                     .GetStudentRequestsAsync(
                         identityUserId));
+        }
+
+        [HttpGet("student/received-requests")]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> GetPatientRequestsToStudent()
+        {
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _treatmentRequestService.GetPatientRequestsToStudentAsync(identityUserId);
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
+        }
+
+        [HttpPut("reject/{requestId}")]
+        [Authorize(Roles ="Patient,Student")]
+        public async Task<IActionResult> RejectRequest(int requestId)
+        {
+            var identityUserId=User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result=await _treatmentRequestService.RejectUserAsync(requestId, identityUserId);
+            return result.IsSuccess ? Ok() : BadRequest(result.Errors);
         }
 
 
