@@ -128,7 +128,6 @@ namespace Service
             await _unitOfWork.SaveChangesAsync();
 
 
-<<<<<<< Updated upstream
             //var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
             // var encodedToken = WebEncoders.Base64UrlEncode(
@@ -151,7 +150,6 @@ namespace Service
             // user.DisplayName,
             // "Check Your Email First" // مفيش token
             //    ));
-=======
         //    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
         //    var encodedToken = WebEncoders.Base64UrlEncode(
@@ -174,7 +172,7 @@ namespace Service
         //        user.DisplayName,
         //        "Check Your Email First" // مفيش token
         //    ));
->>>>>>> Stashed changes
+
 
             var roles = await _userManager.GetRolesAsync(user);
             var token = await _tokenService.CreateTokenAsync(
