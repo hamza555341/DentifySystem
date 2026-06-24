@@ -12,7 +12,6 @@ namespace Shared.DTOs.IdentityDtos
         [EmailAddress] string Email,
         string Password,
         string FullName,
-        [Phone]string PhoneNumber,
-        string City
+        [Phone]string PhoneNumber
     );
 }

@@ -9,7 +9,7 @@ namespace Service.Specifications.CaseSpecifications
         public AvailableCasesSpecification(string? city, Specialization specialization )
          : base(c => 
                      !c.TreatmentRequests.Any(r => r.Status == TreatmentRequestStatus.Accepted) &&
-                     (string.IsNullOrEmpty(city) || c.City.ToLower() == city!.ToLower()) &&
+                     (city == null || c.City == city) &&
                      ( specialization.HasFlag(c.RequiredSpecialization)))
         {
             AddInclude(c => c.Patient.ApplicationUser);
