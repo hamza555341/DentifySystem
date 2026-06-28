@@ -70,6 +70,8 @@ namespace DentifySystem
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+
 
             //builder.Services.AddIdentityCore<ApplicationUser>()
             //    .AddRoles<IdentityRole>()
@@ -152,6 +154,12 @@ namespace DentifySystem
 
 
             var app = builder.Build();
+            var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>();
+            recurringJobManager.AddOrUpdate<IBackgroundJobService>(
+                "expire-old-cases",
+                job => job.ExpireOldCasesAsync(),
+                Cron.Daily
+            );
 
             app.UseHangfireDashboard("/hangfire");
 

@@ -9,6 +9,7 @@ namespace Service.Abstraction
     public interface IBackgroundJobService
     {
         void ScheduleAppointmentCompletion(int appointmentId, DateTime runAt);
+        Task ExpireOldCasesAsync();
 
     }
 }

@@ -10,6 +10,7 @@ namespace Domain.Entites.CaseModule
     {
         Pending=0,
         Assigned =1,
-        Completed=2 
+        Completed=2 ,
+        Expired=3 
     }
 }

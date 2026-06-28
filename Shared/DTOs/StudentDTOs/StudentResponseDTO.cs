@@ -10,6 +10,7 @@ namespace Shared.DTOs.StudentDTOs
     {
         public int Id { get; set; }
         public string FullName { get; set; } = null!;
+        public string? PhoneNumber { get; set; }
         public string City { get; set; } = null!;
         public string UniEmail { get; set; } = null!;
         public string? ProfileImageUrl { get; set; }

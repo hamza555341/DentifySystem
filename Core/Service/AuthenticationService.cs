@@ -150,6 +150,29 @@ namespace Service
             // user.DisplayName,
             // "Check Your Email First" // مفيش token
             //    ));
+        //    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+        //    var encodedToken = WebEncoders.Base64UrlEncode(
+        //        Encoding.UTF8.GetBytes(token));
+
+        //    var baseUrl = _configuration["URLs:BaseURL"];
+
+        //    var confirmLink = $"{baseUrl}api/Authentication/confirmemail" +
+        //                      $"?userId={user.Id}&token={encodedToken}";
+
+        //    var body = $@"
+        //<h2>Confirm Your Email</h2>
+        //<p>Click the link below to confirm your account:</p>
+        //<a href='{confirmLink}'>Confirm Email</a>";
+
+        //    await _emailService.SendEmailAsync(user.Email!, "Confirm Email", body);
+
+        //    return Result<UserDTO>.Ok(new UserDTO(
+        //        user.Email!,
+        //        user.DisplayName,
+        //        "Check Your Email First" // مفيش token
+        //    ));
+
 
             var roles = await _userManager.GetRolesAsync(user);
             var token = await _tokenService.CreateTokenAsync(
