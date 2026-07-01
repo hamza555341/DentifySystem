@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using Domain.Entites.CaseModule;
+using Domain.Entites.Notifications;
 using Domain.Entites.PatientModule;
 using Domain.Entites.StudentModule;
 using Domain.Entites.TreatmentRequestModule;
 using Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 using Service.Abstraction;
 using Service.Specifications.CaseSpecifications;
 using Service.Specifications.StudentRatingSpecifications;
@@ -24,33 +26,39 @@ namespace Service
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
+        private readonly ILogger<TreatmentRequestService> _logger;
+        private readonly INotificationHubService _notificationHubService;
 
-        public TreatmentRequestService(IUnitOfWork unitOfWork,IMapper mapper)
+        public TreatmentRequestService(IUnitOfWork unitOfWork, IMapper mapper, INotificationService notificationService, ILogger<TreatmentRequestService> logger,INotificationHubService notificationHubService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _notificationService = notificationService;
+            _logger = logger;
+            _notificationHubService = notificationHubService;
         }
 
         public async Task<Result> AcceptRequestAsync(int requestId, string identityUserId)
         {
-            var request =await _unitOfWork.GetRepository<TreatmentRequest, int>().GetByIdAsync(new TreatmentRequestWithDetailsSpecification(requestId));
+            var request = await _unitOfWork.GetRepository<TreatmentRequest, int>().GetByIdAsync(new TreatmentRequestWithDetailsSpecification(requestId));
 
             if (request is null) return Error.NotFound("Request.Notfound");
 
             if (request.Status != TreatmentRequestStatus.Pending) return Error.Failure("Request.NotPending");
 
-            if(request.InitiatedBy == RequestInitiator.Student)
+            if (request.InitiatedBy == RequestInitiator.Student)
             {
-                var patient = await _unitOfWork.GetRepository<Patient,int>()
+                var patient = await _unitOfWork.GetRepository<Patient, int>()
                 .GetByIdAsync(new PatientByUserIdSpecification(identityUserId));
 
                 if (patient is null || request.Case.PatientId != patient.Id)
-                    return  Error.Unauthorized("Request.Unauthorized");
+                    return Error.Unauthorized("Request.Unauthorized");
             }
 
             else
             {
-                var student = await _unitOfWork.GetRepository<Student,int>()
+                var student = await _unitOfWork.GetRepository<Student, int>()
                     .GetByIdAsync(new StudentByUserIdSpecification(identityUserId));
 
                 if (student is null || request.StudentId != student.Id)
@@ -58,12 +66,12 @@ namespace Service
             }
 
             request.Status = TreatmentRequestStatus.Accepted;
-         
+
 
             request.Case.Status = CaseStatus.Assigned;
-               
 
-            var others = await _unitOfWork.GetRepository<TreatmentRequest,int>()
+
+            var others = await _unitOfWork.GetRepository<TreatmentRequest, int>()
                 .GetAllAsync(new TreatmentRequestsByCaseSpecification(request.CaseId));
 
             foreach (var r in others)
@@ -72,14 +80,44 @@ namespace Service
                     r.Status = TreatmentRequestStatus.Rejected;
             }
 
-            _unitOfWork.GetRepository<TreatmentRequest,int>().Update(request);
+            _unitOfWork.GetRepository<TreatmentRequest, int>().Update(request);
             await _unitOfWork.SaveChangesAsync();
+
+            var receiverId = request.InitiatedBy == RequestInitiator.Student
+    ? request.Student.IdentityUserId
+    : request.Case.Patient.IdentityUserId;
+
+            var notificationResult = await _notificationService.CreateNotificationAsync(
+                receiverId: receiverId,
+                senderId: request.InitiatedBy == RequestInitiator.Student
+                    ? request.Case.Patient.IdentityUserId
+                    : request.Student.IdentityUserId,
+                type: NotificationType.RequestAccepted,
+                referenceId: request.Id);
+
+            if (notificationResult.IsFailure)
+            {
+                _logger.LogError(
+                "Failed to create notification for request {RequestId}",
+                request.Id);
+            }
+            else
+            {
+                var n = notificationResult.Value;
+                await _notificationHubService.SendAsync(
+                    receiverId,
+                    n.Title,
+                    n.Message,
+                    (int)n.Type,
+                    n.ReferenceId,
+                    n.CreatedAt);
+            }
 
             return Result.Ok();
 
         }
 
-        public async Task<Result<IEnumerable<TreatmentRequestResponseDTO>>> GetRequestsByCaseAsync( string identityUserId)
+        public async Task<Result<IEnumerable<TreatmentRequestResponseDTO>>> GetRequestsByCaseAsync(string identityUserId)
         {
             var patient = await _unitOfWork.GetRepository<Patient, int>()
                 .GetByIdAsync(new PatientByUserIdSpecification(identityUserId));
@@ -140,12 +178,14 @@ namespace Service
 
             if (patient == null) return Error.NotFound("Patient.NotFound");
 
-            var case0 = await _unitOfWork.GetRepository<Case, int>().GetByIdAsync( caseId);
+            var case0 = await _unitOfWork.GetRepository<Case, int>().GetByIdAsync(caseId);
+
+            if (case0 == null) return Error.NotFound("Case.NotFound");
 
             if (case0.Status != CaseStatus.Pending)
                 return Error.Failure("Case.NotAvailable");
 
-            if (case0 == null) return Error.NotFound("Case.NotFound");
+            
 
             if (case0.PatientId != patient.Id) return Error.Unauthorized("It's not your case ");
 
@@ -153,7 +193,7 @@ namespace Service
 
             if (student is null) return Error.NotFound("Student.NotFound");
 
-            var existingRequest = await _unitOfWork.GetRepository<TreatmentRequest,int>()
+            var existingRequest = await _unitOfWork.GetRepository<TreatmentRequest, int>()
                 .GetByIdAsync(new TreatmentRequestByStudentAndCaseSpecification(studentId, caseId));
 
             if (existingRequest is not null) return Error.Failure("Request.AlreadySent");
@@ -167,8 +207,35 @@ namespace Service
                 Status = TreatmentRequestStatus.Pending
             };
 
-            await _unitOfWork.GetRepository<TreatmentRequest,int>().AddAsync(request);
+            await _unitOfWork.GetRepository<TreatmentRequest, int>().AddAsync(request);
             await _unitOfWork.SaveChangesAsync();
+
+            var receiverId = student.IdentityUserId;
+
+            var notificationResult = await _notificationService.CreateNotificationAsync(
+                receiverId: receiverId,
+                senderId: patient.IdentityUserId,
+                type: NotificationType.Request,
+                referenceId: request.Id);
+
+            if (notificationResult.IsFailure)
+            {
+                _logger.LogError(
+                "Failed to create notification for request {RequestId}",
+                request.Id);
+            }
+            else
+            {
+                var n = notificationResult.Value;
+                await _notificationHubService.SendAsync(
+                    receiverId,
+                    n.Title,
+                    n.Message,
+                    (int)n.Type,
+                    n.ReferenceId,
+                    n.CreatedAt);
+            }
+
 
             return Result.Ok();
 
@@ -176,7 +243,7 @@ namespace Service
 
         public async Task<Result> RejectUserAsync(int requestId, string identityUserId)
         {
-            var request = await _unitOfWork.GetRepository<TreatmentRequest,int>()
+            var request = await _unitOfWork.GetRepository<TreatmentRequest, int>()
                .GetByIdAsync(new TreatmentRequestWithDetailsSpecification(requestId));
 
             if (request is null)
@@ -187,7 +254,7 @@ namespace Service
 
             if (request.InitiatedBy == RequestInitiator.Student)
             {
-                var patient = await _unitOfWork.GetRepository<Patient,int>()
+                var patient = await _unitOfWork.GetRepository<Patient, int>()
                     .GetByIdAsync(new PatientByUserIdSpecification(identityUserId));
 
                 if (patient is null || request.Case.PatientId != patient.Id)
@@ -195,7 +262,7 @@ namespace Service
             }
             else
             {
-                var student = await _unitOfWork.GetRepository<Student,int>()
+                var student = await _unitOfWork.GetRepository<Student, int>()
                     .GetByIdAsync(new StudentByUserIdSpecification(identityUserId));
 
                 if (student is null || request.StudentId != student.Id)
@@ -204,24 +271,54 @@ namespace Service
 
             request.Status = TreatmentRequestStatus.Rejected;
 
-            _unitOfWork.GetRepository<TreatmentRequest,int>().Update(request);
+            _unitOfWork.GetRepository<TreatmentRequest, int>().Update(request);
             await _unitOfWork.SaveChangesAsync();
+
+            var receiverId = request.InitiatedBy == RequestInitiator.Student
+            ? request.Student.IdentityUserId
+            : request.Case.Patient.IdentityUserId;
+
+            var notificationResult = await _notificationService.CreateNotificationAsync(
+                receiverId: receiverId,
+                senderId: request.InitiatedBy == RequestInitiator.Student
+                    ? request.Case.Patient.IdentityUserId
+                    : request.Student.IdentityUserId,
+                type: NotificationType.RequestRejected,
+                referenceId: request.Id);
+
+            if (notificationResult.IsFailure)
+            {
+                _logger.LogError(
+                "Failed to create notification for request {RequestId}",
+                request.Id);
+            }
+            else
+            {
+                var n = notificationResult.Value;
+                await _notificationHubService.SendAsync(
+                    receiverId,
+                    n.Title,
+                    n.Message,
+                    (int)n.Type,
+                    n.ReferenceId,
+                    n.CreatedAt);
+            }
 
             return Result.Ok();
         }
 
         public async Task<Result> StudentSendRequestAsync(int caseId, string IdentityUserId)
         {
-            var student =await _unitOfWork.GetRepository<Student,int>().GetByIdAsync(new StudentByUserIdSpecification(IdentityUserId));
+            var student = await _unitOfWork.GetRepository<Student, int>().GetByIdAsync(new StudentByUserIdSpecification(IdentityUserId));
 
-            if(student is null)
+            if (student is null)
                 return Error.NotFound("Student.NotFound");
 
             if (!student.IsActive)
-                return  Error.Failure("Student.NotApproved");
+                return Error.Failure("Student.NotApproved");
 
-            var case0 = await _unitOfWork.GetRepository<Case,int>()
-                    .GetByIdAsync (new CaseWithImagesSpecification(caseId));
+            var case0 = await _unitOfWork.GetRepository<Case, int>()
+                    .GetByIdAsync(new CaseWithImagesSpecification(caseId));
 
             if (case0 is null)
                 return Error.NotFound("Case.NotFound");
@@ -243,8 +340,33 @@ namespace Service
                 Status = TreatmentRequestStatus.Pending
             };
 
-            await _unitOfWork.GetRepository<TreatmentRequest,int>().AddAsync(request);
-           await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.GetRepository<TreatmentRequest, int>().AddAsync(request);
+            await _unitOfWork.SaveChangesAsync();
+            var receiverId = case0.Patient.IdentityUserId;
+
+            var notificationResult = await _notificationService.CreateNotificationAsync(
+                receiverId: receiverId,
+                senderId: student.IdentityUserId,
+                type: NotificationType.Request,
+                referenceId: request.Id);
+
+            if (notificationResult.IsFailure)
+            {
+                _logger.LogError(
+                "Failed to create notification for request {RequestId}",
+                request.Id);
+            }
+            else
+            {
+                var n = notificationResult.Value;
+                await _notificationHubService.SendAsync(
+                    receiverId,
+                    n.Title,
+                    n.Message,
+                    (int)n.Type,
+                    n.ReferenceId,
+                    n.CreatedAt);
+            }
 
             return Result.Ok();
 
@@ -253,7 +375,7 @@ namespace Service
 
         }
 
-        public async Task<Result<IEnumerable<StudentRequestResponseDTO>>>GetStudentRequestsAsync(string identityUserId)
+        public async Task<Result<IEnumerable<StudentRequestResponseDTO>>> GetStudentRequestsAsync(string identityUserId)
         {
             var student = await _unitOfWork
                 .GetRepository<Student, int>()

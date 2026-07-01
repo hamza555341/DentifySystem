@@ -1,10 +1,15 @@
-﻿using Domain.Entites.ChatModule;
+﻿using AutoMapper;
+using Domain.Entites.ChatModule;
+using Domain.Entites.Notifications;
 using Domain.Entites.TreatmentRequestModule;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Presentation.Hubs;
+using Service.Abstraction;
 using Service.Specifications.CaseSpecifications;
 using Service.Specifications.TreatmentRequestSpecificaition;
+using Shared.DTOs.NotificationsDTO;
 using System.Text.RegularExpressions;
 
 namespace DentifySystem.Hubs
@@ -13,10 +18,18 @@ namespace DentifySystem.Hubs
     public class ChatHub : Hub
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly INotificationService _notificationService;
+        private readonly ILogger<TreatmentRequest> _logger;
+        private readonly INotificationHubService _notificationHubService;
+        
 
-        public ChatHub(IUnitOfWork unitOfWork)
+        public ChatHub(IUnitOfWork unitOfWork,INotificationService notificationService,ILogger<TreatmentRequest>logger, INotificationHubService notificationHubService)
         {
             _unitOfWork = unitOfWork;
+            _notificationService = notificationService;
+            _logger = logger;
+            _notificationHubService = notificationHubService;
+            
         }
 
         public override async Task OnConnectedAsync()
@@ -58,6 +71,17 @@ namespace DentifySystem.Hubs
         {
             var identityUserId = Context.UserIdentifier!;
 
+            var request = await _unitOfWork
+            .GetRepository<TreatmentRequest, int>()
+            .GetByIdAsync( new TreatmentRequestWithDetailsSpecification(requestId));
+
+            if (request is null)
+            {
+                return;
+            }
+
+            var receiverId = identityUserId == request.Student.IdentityUserId ? request.Case.Patient.IdentityUserId: request.Student.IdentityUserId;
+
             var message = new ChatMessage
             {
                 TreatmentRequestId = requestId,
@@ -68,6 +92,32 @@ namespace DentifySystem.Hubs
 
             await _unitOfWork.GetRepository<ChatMessage,int>().AddAsync(message);
             await _unitOfWork.SaveChangesAsync();
+
+            var notificationResult =
+                await _notificationService.CreateNotificationAsync(
+                    receiverId,
+                    identityUserId,
+                    NotificationType.Message,
+                    request.Id);
+
+            if (notificationResult.IsFailure)
+            {
+                _logger.LogError(
+                    "Failed to create notification for request {RequestId}",
+                    request.Id);
+            }
+            else
+            {
+                var n = notificationResult.Value;
+                await _notificationHubService.SendAsync(
+                    receiverId,
+                    n.Title,
+                    n.Message,
+                    (int)n.Type,
+                    n.ReferenceId,
+                    n.CreatedAt);
+            }
+            
 
             await Clients.Group($"chat_{requestId}").SendAsync("ReceiveMessage", new
             {

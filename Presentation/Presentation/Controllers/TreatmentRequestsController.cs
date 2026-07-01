@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Presentation.Hubs;
 using Service.Abstraction;
 using Shared.DTOs.TreatmentRequestsDTOs;
 using Shared.DTOs.TreatmentRequestsDTOs.Shared.DTOs.TreatmentRequests;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,10 +18,12 @@ namespace Presentation.Controllers
     public class TreatmentRequestsController:ApiBaseController
     {
         private readonly ITreatmentRequestService _treatmentRequestService;
+        private readonly IHubContext<NotificationHub> _notificationHub;
 
-        public TreatmentRequestsController(ITreatmentRequestService treatmentRequestService)
+        public TreatmentRequestsController(ITreatmentRequestService treatmentRequestService, IHubContext<NotificationHub> notificationHub)
         {
             _treatmentRequestService = treatmentRequestService;
+            _notificationHub = notificationHub;
         }
         [HttpPost("student/send/{caseId}")]
         [Authorize(Roles = "Student")]
