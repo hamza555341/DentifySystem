@@ -11,6 +11,9 @@ namespace Domain.Entites.Notifications
         Message = 1,
         Request = 2,
         RequestAccepted = 3,
-        RequestRejected = 4
+        RequestRejected = 4,
+        AppointmentProposed = 5,
+
+        AppointmentConfirmed = 6
     }
 }

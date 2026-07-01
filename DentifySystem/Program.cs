@@ -2,6 +2,7 @@
 using DentifySystem.BackgroundJobs;
 using DentifySystem.Extentions;
 using DentifySystem.Hubs;
+using DentifySystem.Services;
 using Domain.Entites.IdentityModule;
 using Domain.Interfaces;
 using Hangfire;
@@ -16,6 +17,7 @@ using Persistence.IdentityData.DataSeed;
 using Persistence.IdentityData.IdentityModule;
 using Persistence.Repositories;
 using Persistence.Services;
+using Presentation.Hubs;
 using Service;
 using Service.Abstraction;
 using Service.MappingProfile;
@@ -108,6 +110,8 @@ namespace DentifySystem
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<IPatientService, PatientService>();
             builder.Services.AddScoped<IAccountService,AccountService>();
+            builder.Services.AddScoped<INotificationHubService, NotificationHubService>();
+
 
 
             builder.Services.AddAuthentication(options =>
@@ -185,6 +189,7 @@ namespace DentifySystem
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapHub<ChatHub>("/hubs/chat");
+            app.MapHub<NotificationHub>("/hubs/notification");
 
             app.UseStaticFiles();   
 
