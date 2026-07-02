@@ -42,7 +42,7 @@ namespace Persistence.IdentityData.IdentityModule
                 issuer: _configuration["JWTOptions:Issuer"],
                 audience: _configuration["JWTOptions:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.UtcNow.AddDays(10),
                 signingCredentials: creds
             );
 
