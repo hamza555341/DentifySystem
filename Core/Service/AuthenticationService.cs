@@ -99,7 +99,6 @@ namespace Service
 
             var user = new ApplicationUser
             {
-                UserName = dto.UserName,
                 Email = dto.Email,
                 PhoneNumber = dto.PhoneNumber,
                 DisplayName = dto.FullName,
@@ -188,7 +187,7 @@ namespace Service
 
             var user = new ApplicationUser
             {
-                UserName = dto.UserName,
+               
                 Email = dto.Email,
                 PhoneNumber = dto.PhoneNumber,
                 DisplayName = dto.FullName,

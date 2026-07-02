@@ -8,7 +8,7 @@ namespace DentifySystem.BackgroundJobs
     {
         public ExpiredCasesSpecification()
             : base(c=>
-                        c.CreatedAt < DateTime.UtcNow.AddDays(-7))
+                        c.CreatedAt < DateTime.UtcNow.AddDays(-30))
         {
         }
     }

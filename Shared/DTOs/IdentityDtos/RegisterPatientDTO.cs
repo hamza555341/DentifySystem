@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Shared.DTOs.IdentityDtos
 {
     public record RegisterPatientDTO(
-        string UserName,
+        
         [EmailAddress] string Email,
         string Password,
         string FullName,

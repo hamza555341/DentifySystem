@@ -109,6 +109,7 @@ namespace Service
                         (current, next) => current | next);
                 }
 
+
                 _unitOfWork.GetRepository<Student, int>().Update(student);
             }
             else
