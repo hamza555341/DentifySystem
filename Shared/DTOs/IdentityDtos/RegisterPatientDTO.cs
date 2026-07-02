@@ -13,6 +13,7 @@ namespace Shared.DTOs.IdentityDtos
         string Password,
         string FullName,
         [Phone]string PhoneNumber,
-        string City
+        string City,
+        int age
     );
 }
