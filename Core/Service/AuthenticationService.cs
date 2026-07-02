@@ -191,6 +191,7 @@ namespace Service
                 Email = dto.Email,
                 PhoneNumber = dto.PhoneNumber,
                 DisplayName = dto.FullName,
+
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
@@ -206,7 +207,9 @@ namespace Service
             {
                 City = dto.City,               
                 IdentityUserId = user.Id,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                age=dto.age
+                
             };
 
             try
