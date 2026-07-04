@@ -175,7 +175,7 @@ namespace Service
 
             var roles = await _userManager.GetRolesAsync(user);
             var token = await _tokenService.CreateTokenAsync(
-                user.Id, user.Email!, user.UserName!, roles);
+                user.Id, user.Email!, user.DisplayName!, roles);
 
             return new UserDTO(user.Email!, user.DisplayName, token);
         }
@@ -253,7 +253,7 @@ namespace Service
 
             var roles = await _userManager.GetRolesAsync(user);
             var token = await _tokenService.CreateTokenAsync(
-                user.Id, user.Email!, user.UserName!, roles);
+                user.Id, user.Email!, user.DisplayName!, roles);
 
             return new UserDTO(user.Email!, user.DisplayName, token);
         }

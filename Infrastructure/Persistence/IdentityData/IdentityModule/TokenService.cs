@@ -20,14 +20,14 @@ namespace Persistence.IdentityData.IdentityModule
             _configuration = configuration;
         }
 
-        public Task<string> CreateTokenAsync(string userId, string email, string userName,
+        public Task<string> CreateTokenAsync(string userId, string email, string name,
             IList<string> roles)
         {
             var claims = new List<Claim>
             {
             new Claim(ClaimTypes.NameIdentifier, userId),
             new Claim(ClaimTypes.Email, email),
-            new Claim(ClaimTypes.Name, userName)
+            new Claim(ClaimTypes.Name, name)
             };
 
             foreach (var role in roles)

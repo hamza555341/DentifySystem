@@ -15,7 +15,7 @@ namespace Shared.DTOs.CaseDtos
         public string City { get; set; } = null!;
         public string Status { get; set; } = null!;
         public DateTime CreatedAt { get; set; }
-
+        public int age { get; set; }
         public string PatientName { get; set; } = null!;
 
         public string Image { get; set; } = null!;
