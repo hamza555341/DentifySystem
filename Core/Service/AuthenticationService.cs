@@ -102,6 +102,7 @@ namespace Service
                 Email = dto.Email,
                 PhoneNumber = dto.PhoneNumber,
                 DisplayName = dto.FullName,
+                UserName=dto.Email
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
@@ -191,6 +192,7 @@ namespace Service
                 Email = dto.Email,
                 PhoneNumber = dto.PhoneNumber,
                 DisplayName = dto.FullName,
+                UserName=dto.Email
 
             };
 

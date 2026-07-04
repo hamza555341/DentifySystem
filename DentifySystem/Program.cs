@@ -111,6 +111,7 @@ namespace DentifySystem
             builder.Services.AddScoped<IPatientService, PatientService>();
             builder.Services.AddScoped<IAccountService,AccountService>();
             builder.Services.AddScoped<INotificationHubService, NotificationHubService>();
+            builder.Services.AddHttpClient();
 
 
 
@@ -178,11 +179,13 @@ namespace DentifySystem
 
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+            
                 app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Dentify API v1");
+            });
+
 
             app.UseHttpsRedirection();
 
