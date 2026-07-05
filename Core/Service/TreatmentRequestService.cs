@@ -134,10 +134,7 @@ namespace Service
             if (activeCase is null)
                 return Error.NotFound("Case.NoActiveCase");
 
-            if (activeCase.Status == CaseStatus.Assigned)
-                return Result<IEnumerable<TreatmentRequestResponseDTO>>
-                    .Ok([]);
-
+           
             var caseEntity = await _unitOfWork.GetRepository<Case, int>()
                 .GetByIdAsync(new CaseWithImagesSpecification(activeCase.Id));
 
