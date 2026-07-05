@@ -417,5 +417,38 @@ namespace Service
             return Result<IEnumerable<StudentRequestResponseDTO>>.Ok(result);
         }
 
+        public async Task<Result<IEnumerable<TreatmentRequestResponseDTO>>> GetPatientSentRequestsAsync(string identityUserId)
+        {
+            var patient = await _unitOfWork.GetRepository<Patient, int>()
+                .GetByIdAsync(new PatientByUserIdSpecification(identityUserId));
+
+            if (patient is null)
+                return Error.NotFound("Patient.NotFound");
+
+            var requests = await _unitOfWork.GetRepository<TreatmentRequest, int>()
+                .GetAllAsync(new PatientSentRequestsSpecification(patient.Id));
+
+            var result = new List<TreatmentRequestResponseDTO>();
+
+            foreach (var request in requests)
+            {
+                var ratings = await _unitOfWork.GetRepository<StudentRating, int>()
+                    .GetAllAsync(new RatingsByStudentSpecification(request.StudentId));
+
+                var ratingList = ratings.ToList();
+                var average = ratingList.Any()
+                    ? Math.Round(ratingList.Average(r => r.Rating), 1)
+                    : 0.0;
+
+                var dto = _mapper.Map<TreatmentRequestResponseDTO>(request);
+                dto.AverageRating = average;
+                dto.TotalRatings = ratingList.Count;
+
+                result.Add(dto);
+            }
+
+            return Result<IEnumerable<TreatmentRequestResponseDTO>>.Ok(result);
+        }
+
     }
 }
