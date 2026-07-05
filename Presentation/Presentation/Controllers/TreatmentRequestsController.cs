@@ -96,6 +96,15 @@ namespace Presentation.Controllers
             return result.IsSuccess ? Ok() : BadRequest(result.Errors);
         }
 
+        [HttpGet("patient/sent-requests")]
+        [Authorize(Roles = "Patient")]
+        public async Task<IActionResult> GetPatientSentRequests()
+        {
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _treatmentRequestService.GetPatientSentRequestsAsync(identityUserId);
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
+        }
+
 
     }
 }
