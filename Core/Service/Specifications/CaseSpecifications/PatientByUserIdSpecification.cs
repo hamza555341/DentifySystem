@@ -10,6 +10,9 @@ namespace Service.Specifications.CaseSpecifications
     public class PatientByUserIdSpecification : BaseSpecification<Patient, int>
     {
         public PatientByUserIdSpecification(string userId)
-            : base(p => p.IdentityUserId == userId) { }
+            : base(p => p.IdentityUserId == userId) 
+        {
+            AddInclude(x => x.ApplicationUser);
+        }
     }
 }
