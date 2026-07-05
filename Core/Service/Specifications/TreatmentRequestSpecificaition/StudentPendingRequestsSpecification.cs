@@ -13,9 +13,9 @@ namespace Service.Specifications.TreatmentRequestSpecificaition
     {
         public StudentPendingRequestsSpecification(int studentId)
             : base(r =>
-                r.StudentId == studentId &&
+                r.StudentId == studentId
                 
-                r.Case.Status == CaseStatus.Pending)
+                )
         {
             AddInclude(r => r.Case);
             AddInclude(r => r.Case.Patient.ApplicationUser);
