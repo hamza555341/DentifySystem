@@ -53,6 +53,16 @@ namespace Service
                 _mapper.Map<IEnumerable<StudentResponseDTO>>(students));
         }
 
+        public async Task<Result<StudentResponseDTO>> GetStudentByIdAsync(int studentId)
+        {
+            var student = await _unitOfWork.GetRepository<Student, int>()
+                .GetByIdAsync(new StudentByIdWithUserSpecification(studentId));
 
+            if (student is null)
+                return Error.NotFound("Student.NotFound");
+
+            var result = _mapper.Map<StudentResponseDTO>(student);
+            return Result<StudentResponseDTO>.Ok(result);
+        }
     }
 }

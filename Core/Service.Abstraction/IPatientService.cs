@@ -12,5 +12,7 @@ namespace Service.Abstraction
     {
         Task<Result<IEnumerable<StudentResponseDTO>>> GetAvailableStudentsAsync(
             int caseId, string identityUserId, string? universityName = null);
+        Task<Result<StudentResponseDTO>> GetStudentByIdAsync(int studentId);
+
     }
 }

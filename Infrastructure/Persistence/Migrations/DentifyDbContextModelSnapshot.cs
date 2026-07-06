@@ -549,7 +549,7 @@ namespace Persistence.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
                 {
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(450)"); 
 
                     b.Property<string>("RoleId")
                         .HasColumnType("nvarchar(450)");

@@ -131,11 +131,7 @@ namespace Service
                     student.ProfileImageUrl = path;
                     _unitOfWork.GetRepository<Student, int>().Update(student);
                 }
-                else if (patient is not null)
-                {
-                    patient.ProfileImageUrl = path;
-                    _unitOfWork.GetRepository<Patient, int>().Update(patient);
-                }
+
             }
 
             await _unitOfWork.SaveChangesAsync();

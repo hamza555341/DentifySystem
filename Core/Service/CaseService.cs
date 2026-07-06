@@ -274,8 +274,7 @@ namespace Service
             if (case0 is null) return Error.NotFound("Case.NotFound");
             if (case0.Status != CaseStatus.Pending)
                 return Error.Validation("Case.NotEditable", "Only pending cases can be edited");
-            if (!string.IsNullOrEmpty(dto.Description) && dto.Description != "string")
-                case0.Description = dto.Description;
+
             if (!string.IsNullOrEmpty(dto.City) && dto.City != "string")
                 case0.City = dto.City;
            case0.RequiredSpecialization = dto.RequiredSpecialization;
@@ -303,7 +302,30 @@ namespace Service
         }
 
 
+        private Specialization MapDiagnosis(string diagnosis)
+        {
+            if (diagnosis.Contains("Dental Caries") ||
+                diagnosis.Contains("تسوس"))
+                return Specialization.DentalCaries;
 
+            if (diagnosis.Contains("Periodontal") ||
+                diagnosis.Contains("لثة"))
+                return Specialization.PeriodontalDiseas;
+
+            if (diagnosis.Contains("Hypodontia") ||
+                diagnosis.Contains("فقدان"))
+                return Specialization.Hypodontia;
+
+            if (diagnosis.Contains("Mouth Ulcer") ||
+                diagnosis.Contains("قرحة"))
+                return Specialization.MouthUlcer;
+
+            if (diagnosis.Contains("Tooth Discoloration") ||
+                diagnosis.Contains("تغير لون"))
+                return Specialization.ToothDiscoloration;
+
+            return Specialization.None;
+        }
 
 
 
