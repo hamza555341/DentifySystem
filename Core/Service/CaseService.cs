@@ -268,30 +268,43 @@ namespace Service
             return Result<CaseResponseDTO>.Ok(dto);
         }
 
-        private Specialization MapDiagnosis(string diagnosis)
+        public async Task<Result> EditCase(int caseId, EditCaseDTO dto)
         {
-            if (diagnosis.Contains("Dental Caries") ||
-                diagnosis.Contains("تسوس"))
-                return Specialization.DentalCaries;
+            var case0=await _unitOfWork.GetRepository<Case, int>().GetByIdAsync(new CaseWithImagesSpecification(caseId));
+            if (case0 is null) return Error.NotFound("Case.NotFound");
+            if (case0.Status != CaseStatus.Pending)
+                return Error.Validation("Case.NotEditable", "Only pending cases can be edited");
+            if (!string.IsNullOrEmpty(dto.Description) && dto.Description != "string")
+                case0.Description = dto.Description;
+            if (!string.IsNullOrEmpty(dto.City) && dto.City != "string")
+                case0.City = dto.City;
+           case0.RequiredSpecialization = dto.RequiredSpecialization;
+            if (dto.Image is not null)
+            {
+                var imagePath = await _attachmentService.UploadAsync("cases", dto.Image);
+                if (imagePath is not null)
+                    case0.ImageUrl = imagePath;
+            }
+            _unitOfWork.GetRepository<Case, int>().Update(case0);
+             await _unitOfWork.SaveChangesAsync();
+            return Result.Ok();
 
-            if (diagnosis.Contains("Periodontal") ||
-                diagnosis.Contains("لثة"))
-                return Specialization.PeriodontalDiseas;
 
-            if (diagnosis.Contains("Hypodontia") ||
-                diagnosis.Contains("فقدان"))
-                return Specialization.Hypodontia;
-
-            if (diagnosis.Contains("Mouth Ulcer") ||
-                diagnosis.Contains("قرحة"))
-                return Specialization.MouthUlcer;
-
-            if (diagnosis.Contains("Tooth Discoloration") ||
-                diagnosis.Contains("تغير لون"))
-                return Specialization.ToothDiscoloration;
-
-            return Specialization.None;
         }
+
+        public async Task<Result> DeleteCase(int caseId)
+        {
+            var Case0=await _unitOfWork.GetRepository<Case,int>().GetByIdAsync(caseId);
+            if (Case0 is null) return Error.NotFound("Case Not Found");
+            if(Case0.Status != CaseStatus.Pending) return Error.Validation("Case.NotDeletable", "Only pending cases can be deleted");
+            _unitOfWork.GetRepository<Case, int>().Delete(Case0);
+            await _unitOfWork.SaveChangesAsync();
+            return Result.Ok();
+        }
+
+
+
+
 
 
         #endregion

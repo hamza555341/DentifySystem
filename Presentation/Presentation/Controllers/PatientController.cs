@@ -20,7 +20,7 @@ namespace Presentation.Controllers
             _patientService = patientService;
         }
 
-        [HttpGet("available-students/{caseId}")]
+        [HttpGet("available-students")]
         [Authorize(Roles = "Patient")]
         public async Task<ActionResult<IEnumerable<StudentResponseDTO>>> GetAvailableStudents(
          int caseId, [FromQuery] string? universityName = null)
@@ -31,5 +31,14 @@ namespace Presentation.Controllers
 
             return HandleResult(result);
         }
+        [HttpGet("students/{studentId}")]
+        [Authorize(Roles = "Patient")]
+        public async Task<IActionResult> GetStudentById(int studentId)
+        {
+            var result = await _patientService.GetStudentByIdAsync(studentId);
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
+        }
+
+
     }
 }

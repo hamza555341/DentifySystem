@@ -12,6 +12,7 @@ namespace Domain.Entites.PatientModule
     public class Patient :BaseEntity<int>
     {
         public string IdentityUserId { get; set; } = null!;
+        public int age { get; set; }
 
         public ICollection<Case> Cases { get; set; } = new List<Case>();
         public ApplicationUser ApplicationUser { get; set; } = null!;

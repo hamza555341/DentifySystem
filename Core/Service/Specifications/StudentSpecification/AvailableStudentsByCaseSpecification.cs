@@ -1,4 +1,5 @@
 ﻿using Domain.Entites.StudentModule;
+using Domain.Entites.TreatmentRequestModule;
 using System;
 using System.Collections.Generic;
 using System.Linq;

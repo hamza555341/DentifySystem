@@ -12,7 +12,7 @@ namespace Service.Specifications.CaseSpecifications
         public CaseWithImagesSpecification(int caseId)
             : base(c => c.Id == caseId)
         {
-            AddInclude(c => c.Patient);
+            AddInclude(c => c.Patient.ApplicationUser);
         }
     }
 }

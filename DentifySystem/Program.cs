@@ -2,6 +2,7 @@
 using DentifySystem.BackgroundJobs;
 using DentifySystem.Extentions;
 using DentifySystem.Hubs;
+using DentifySystem.Services;
 using Domain.Entites.IdentityModule;
 using Domain.Interfaces;
 using Hangfire;
@@ -16,6 +17,7 @@ using Persistence.IdentityData.DataSeed;
 using Persistence.IdentityData.IdentityModule;
 using Persistence.Repositories;
 using Persistence.Services;
+using Presentation.Hubs;
 using Service;
 using Service.Abstraction;
 using Service.MappingProfile;
@@ -70,6 +72,8 @@ namespace DentifySystem
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+            builder.Services.AddScoped<INotificationService, NotificationService>();
+
 
             builder.Services.AddHttpClient<IAiDiagnosisService, AiDiagnosisService>(client =>
             {
@@ -110,6 +114,9 @@ namespace DentifySystem
             builder.Services.AddScoped<IChatService, ChatService>();
             builder.Services.AddScoped<IPatientService, PatientService>();
             builder.Services.AddScoped<IAccountService,AccountService>();
+            builder.Services.AddScoped<INotificationHubService, NotificationHubService>();
+            builder.Services.AddHttpClient();
+
 
 
             builder.Services.AddAuthentication(options =>
@@ -156,6 +163,12 @@ namespace DentifySystem
 
 
             var app = builder.Build();
+            var recurringJobManager = app.Services.GetRequiredService<IRecurringJobManager>();
+            recurringJobManager.AddOrUpdate<IBackgroundJobService>(
+                "expire-old-cases",
+                job => job.ExpireOldCasesAsync(),
+                Cron.Daily
+            );
 
             app.UseHangfireDashboard("/hangfire");
 
@@ -170,17 +183,20 @@ namespace DentifySystem
 
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
+            
                 app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Dentify API v1");
+            });
+
 
             app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapHub<ChatHub>("/hubs/chat");
+            app.MapHub<NotificationHub>("/hubs/notification");
 
             app.UseStaticFiles();   
 

@@ -13,6 +13,7 @@ namespace Service.Specifications.CaseSpecifications
             : base(c => c.PatientId == patientId)
         {
             AddOrderByDesc(c => c.CreatedAt);
+            AddInclude(x => x.Patient.ApplicationUser);
         }
     }
 }

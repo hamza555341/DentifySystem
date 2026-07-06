@@ -7,13 +7,17 @@ using System.Threading.Tasks;
 
 namespace Service.Specifications.TreatmentRequestSpecificaition
 {
-    public class TreatmentRequestByIdSpecification : BaseSpecification<TreatmentRequest,int>
+    public class TreatmentRequestByIdSpecification
+         : BaseSpecification<TreatmentRequest, int>
     {
         public TreatmentRequestByIdSpecification(int requestId)
-            : base(tr => tr.Id == requestId)
+            : base(r => r.Id == requestId)
         {
-            AddInclude(tr => tr.Case);
-            AddInclude(tr => tr.Student);
+            AddInclude(r => r.Student);
+
+            AddInclude(r => r.Case);
+
+            AddInclude(r => r.Case.Patient) ;
         }
     }
 }

@@ -64,6 +64,20 @@ namespace Presentation.Controllers
             return HandleResult(await _caseService.GetCaseByIdAsync(id));
         }
 
+        [HttpPut("{caseId}")]
+        [Authorize(Roles = "Patient")]
+        public async Task<IActionResult> EditCase(int caseId, [FromForm] EditCaseDTO dto)
+        {
+            return HandleResult(await _caseService.EditCase(caseId, dto));
+        }
+
+        [HttpDelete("{caseId}")]
+        [Authorize(Roles = "Patient")]
+        public async Task<IActionResult> DeleteCase(int caseId)
+        {
+            return HandleResult(await _caseService.DeleteCase(caseId));
+        }
+
 
     }
 

@@ -1,27 +1,14 @@
-﻿using Domain.Entites.CaseModule;
-using Domain.Entites.TreatmentRequestModule;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.Entites.TreatmentRequestModule;
+using Service.Specifications;
 
-namespace Service.Specifications.TreatmentRequestSpecificaition
+public class StudentPendingRequestsSpecification
+    : BaseSpecification<TreatmentRequest, int>
 {
-    public class StudentPendingRequestsSpecification
-      : BaseSpecification<TreatmentRequest, int>
+    public StudentPendingRequestsSpecification(int studentId)
+        : base(r => r.StudentId == studentId)
     {
-        public StudentPendingRequestsSpecification(int studentId)
-            : base(r =>
-                r.StudentId == studentId &&
-                r.Status == TreatmentRequestStatus.Pending &&
-                r.Case.Status == CaseStatus.Pending)
-        {
-            AddInclude(r => r.Case);
-            AddInclude(r => r.Case.Patient);
-            AddInclude(r => r.Case.Patient.ApplicationUser);
-
-            AddOrderByDesc(r => r.CreatedAt);
-        }
+        AddInclude(r => r.Case);
+        AddInclude(r=>r.Case.Patient.ApplicationUser);
+        AddOrderByDesc(r => r.CreatedAt);
     }
 }

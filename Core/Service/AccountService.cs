@@ -21,15 +21,17 @@ namespace Service
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IAttachmentService _attachmentService;
 
         public AccountService(
             UserManager<ApplicationUser> userManager,
             IUnitOfWork unitOfWork,
-            IMapper mapper)
+            IMapper mapper,IAttachmentService attachmentService)
         {
             _userManager = userManager;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _attachmentService = attachmentService;
         }
 
         public async Task<Result<ProfileResponseDTO>> GetCurrentProfileAsync(
@@ -68,71 +70,75 @@ namespace Service
                 _mapper.Map<ProfileResponseDTO>(student));
         }
 
-        public async Task<Result> UpdateProfileAsync(
-      string userId,
-      UpdateProfileDTO dto)
+        public async Task<Result> UpdateProfileAsync(string userId, UpdateProfileDTO dto)
         {
             var user = await _userManager.FindByIdAsync(userId);
-
             if (user is null)
                 return Error.NotFound("User.NotFound");
 
-            user.DisplayName = dto.FullName;
-            user.PhoneNumber = dto.PhoneNumber;
+            if (!string.IsNullOrEmpty(dto.FullName) && dto.FullName != "string")
+                user.DisplayName = dto.FullName;
 
-            var identityResult =
-                await _userManager.UpdateAsync(user);
+            if (!string.IsNullOrEmpty(dto.PhoneNumber) && dto.PhoneNumber != "string")
+                user.PhoneNumber = dto.PhoneNumber;
 
+            var identityResult = await _userManager.UpdateAsync(user);
             if (!identityResult.Succeeded)
                 return identityResult.Errors
-                    .Select(e =>
-                        Error.Validation(
-                            e.Code,
-                            e.Description))
+                    .Select(e => Error.Validation(e.Code, e.Description))
                     .ToList();
 
             var roles = await _userManager.GetRolesAsync(user);
 
+            Student? student = null;
+            Patient? patient = null;
+
             if (roles.Contains("Student"))
             {
-                var student = await _unitOfWork
+                student = await _unitOfWork
                     .GetRepository<Student, int>()
-                    .GetByIdAsync(
-                        new StudentByUserIdSpecification(userId));
+                    .GetByIdAsync(new StudentByUserIdSpecification(userId));
 
                 if (student is null)
                     return Error.NotFound("Student.NotFound");
 
-                if (dto.Specializations is null ||
-                    !dto.Specializations.Any())
+                if (dto.Specializations is not null && dto.Specializations.Any())
                 {
-                    return Error.Validation(
-                        "Specializations.Required",
-                        "At least one specialization is required");
-                }
-
-                student.Specializations =
-                    dto.Specializations.Aggregate(
+                    student.Specializations = dto.Specializations.Aggregate(
                         Specialization.None,
                         (current, next) => current | next);
+                }
 
-                _unitOfWork
-                    .GetRepository<Student, int>()
-                    .Update(student);
+
+                _unitOfWork.GetRepository<Student, int>().Update(student);
             }
             else
             {
-                var patient = await _unitOfWork
+                patient = await _unitOfWork
                     .GetRepository<Patient, int>()
-                    .GetByIdAsync(
-                        new PatientByUserIdSpecification(userId));
+                    .GetByIdAsync(new PatientByUserIdSpecification(userId));
 
                 if (patient is null)
                     return Error.NotFound("Patient.NotFound");
             }
 
-            await _unitOfWork.SaveChangesAsync();
+            if (dto.ProfileImage is not null)
+            {
+                var path = await _attachmentService.UploadAsync("profiles", dto.ProfileImage);
 
+                if (student is not null)
+                {
+                    student.ProfileImageUrl = path;
+                    _unitOfWork.GetRepository<Student, int>().Update(student);
+                }
+                else if (patient is not null)
+                {
+                    patient.ProfileImageUrl = path;
+                    _unitOfWork.GetRepository<Patient, int>().Update(patient);
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
             return Result.Ok();
         }
 

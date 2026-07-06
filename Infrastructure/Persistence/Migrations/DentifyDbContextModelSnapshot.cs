@@ -206,6 +206,53 @@ namespace Persistence.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entites.Notifications.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int?>("ReferenceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("recieverId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SenderId");
+
+                    b.HasIndex("recieverId");
+
+                    b.ToTable("Notifications", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entites.PatientModule.Patient", b =>
                 {
                     b.Property<int>("Id")
@@ -222,6 +269,10 @@ namespace Persistence.Migrations
                     b.Property<string>("IdentityUserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ProfileImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.HasKey("Id");
 
@@ -568,6 +619,25 @@ namespace Persistence.Migrations
                     b.Navigation("Sender");
 
                     b.Navigation("TreatmentRequest");
+                });
+
+            modelBuilder.Entity("Domain.Entites.Notifications.Notification", b =>
+                {
+                    b.HasOne("Domain.Entites.IdentityModule.ApplicationUser", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entites.IdentityModule.ApplicationUser", "reciever")
+                        .WithMany()
+                        .HasForeignKey("recieverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Sender");
+
+                    b.Navigation("reciever");
                 });
 
             modelBuilder.Entity("Domain.Entites.PatientModule.Patient", b =>

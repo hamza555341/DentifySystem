@@ -10,6 +10,7 @@ namespace Shared.DTOs.ProfileDTOs
     public class ProfileResponseDTO
     {
         public string FullName { get; set; } = null!;
+        public int age { get; set; }
         public string Email { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
         public string Role { get; set; } = null!;

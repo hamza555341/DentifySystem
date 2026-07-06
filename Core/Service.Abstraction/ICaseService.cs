@@ -20,5 +20,7 @@ namespace Service.Abstraction
 
         Task<Result<CaseResponseDTO>> GetCaseByIdAsync(int caseId);
 
+        Task<Result>EditCase(int caseId, EditCaseDTO dto);
+        Task<Result>DeleteCase(int caseId);
     }
 }

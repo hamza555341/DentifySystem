@@ -28,6 +28,13 @@ namespace Service.MappingProfile
         .ForMember(d => d.Image,
             o => o.MapFrom(s => s.ImageUrl));
 
+            CreateMap<EditCaseDTO, Case>()
+                .ForMember(d => d.RequiredSpecialization,
+            o => o.MapFrom(s => s.RequiredSpecialization))
+
+        .ForMember(d => d.ImageUrl,
+            o => o.MapFrom(s => s.Image));
+
         }
     }
 

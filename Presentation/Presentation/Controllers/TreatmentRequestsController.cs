@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Presentation.Hubs;
 using Service.Abstraction;
 using Shared.DTOs.TreatmentRequestsDTOs;
 using Shared.DTOs.TreatmentRequestsDTOs.Shared.DTOs.TreatmentRequests;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,10 +18,12 @@ namespace Presentation.Controllers
     public class TreatmentRequestsController:ApiBaseController
     {
         private readonly ITreatmentRequestService _treatmentRequestService;
+        private readonly IHubContext<NotificationHub> _notificationHub;
 
-        public TreatmentRequestsController(ITreatmentRequestService treatmentRequestService)
+        public TreatmentRequestsController(ITreatmentRequestService treatmentRequestService, IHubContext<NotificationHub> notificationHub)
         {
             _treatmentRequestService = treatmentRequestService;
+            _notificationHub = notificationHub;
         }
         [HttpPost("student/send/{caseId}")]
         [Authorize(Roles = "Student")]
@@ -61,8 +66,7 @@ namespace Presentation.Controllers
         [HttpGet("my/student")]
         [Authorize(Roles = "Student")]
         public async Task<ActionResult<
-    IEnumerable<StudentRequestResponseDTO>>>
-    GetMyStudentRequests()
+    IEnumerable<StudentRequestResponseDTO>>> GetMyStudentRequests()
         {
             var identityUserId =
                 User.FindFirstValue(
@@ -72,6 +76,33 @@ namespace Presentation.Controllers
                 await _treatmentRequestService
                     .GetStudentRequestsAsync(
                         identityUserId));
+        }
+
+        [HttpGet("student/received-requests")]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> GetPatientRequestsToStudent()
+        {
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _treatmentRequestService.GetPatientRequestsToStudentAsync(identityUserId);
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
+        }
+
+        [HttpPut("reject/{requestId}")]
+        [Authorize(Roles ="Patient,Student")]
+        public async Task<IActionResult> RejectRequest(int requestId)
+        {
+            var identityUserId=User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result=await _treatmentRequestService.RejectUserAsync(requestId, identityUserId);
+            return result.IsSuccess ? Ok() : BadRequest(result.Errors);
+        }
+
+        [HttpGet("patient/sent-requests")]
+        [Authorize(Roles = "Patient")]
+        public async Task<IActionResult> GetPatientSentRequests()
+        {
+            var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            var result = await _treatmentRequestService.GetPatientSentRequestsAsync(identityUserId);
+            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
         }
 
 
