@@ -10,9 +10,7 @@ namespace Shared.DTOs.AppointmentDtos
     public class ProposeAppointmentsDTO
     {
         public int TreatmentRequestId { get; set; }
-
-        [MinLength(2, ErrorMessage = "At least two slots are required.")]
-        [MaxLength(2, ErrorMessage = "At most two slots are allowed.")]
-        public List<ProposedSlotDTO> Slots { get; set; } = new();
+        public DateTimeOffset AppointmentDate { get; set; }
+        public string Location { get; set; } = null!;
     }
 }
