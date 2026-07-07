@@ -22,7 +22,7 @@ public class ChatBotController : ApiBaseController
     [Authorize]
     public async Task<IActionResult> Ask([FromBody] ChatBotRequestDTO request)
     {
-        var aiServiceUrl = _configuration["AIService:BaseUrl"];
+        var aiServiceUrl = _configuration["AIServiceChatBot:BaseUrl"];
 
         var response = await _httpClient.PostAsJsonAsync($"{aiServiceUrl}/chat", new
         {
