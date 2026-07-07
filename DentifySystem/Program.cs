@@ -112,6 +112,7 @@ namespace DentifySystem
             builder.Services.AddScoped<IAccountService,AccountService>();
             builder.Services.AddScoped<INotificationHubService, NotificationHubService>();
             builder.Services.AddHttpClient();
+            builder.Services.AddScoped<IAdminService, AdminService>();
 
 
 
