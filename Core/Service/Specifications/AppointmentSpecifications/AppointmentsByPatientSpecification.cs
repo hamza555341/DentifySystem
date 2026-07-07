@@ -12,8 +12,7 @@ namespace Service.Specifications.AppointmentSpecifications
     {
         public AppointmentsByPatientSpecification(int patientId)
             : base(a =>
-                a.TreatmentRequest.Case.PatientId == patientId &&
-                a.Status == AppointmentStatus.Confirmed)
+                a.TreatmentRequest.Case.PatientId == patientId )
         {
             AddInclude(a => a.TreatmentRequest);
             AddInclude(a => a.TreatmentRequest.Student);
