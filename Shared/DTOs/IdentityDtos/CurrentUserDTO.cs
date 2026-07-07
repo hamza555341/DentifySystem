@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace Shared.DTOs.IdentityDtos
 {
-    public record CurrentUserDTO(string Email, string DisplayName,string role);
+    public record CurrentUserDTO(string UserId,string Email, string DisplayName,string role);
    
 }
