@@ -9,13 +9,13 @@ namespace Shared.DTOs.AiDTOs
 {
     public class AiReportDto
     {
-        [JsonPropertyName("التقييم_الطبي_المبدئي")]
+        [JsonPropertyName("initial_medical_assessment")]
         public MedicalAssessment? MedicalAssessment { get; set; }
     }
 
     public class MedicalAssessment
     {
-        [JsonPropertyName("تصنيف_الحالة")]
+        [JsonPropertyName("case_classification")]
         public string? Diagnosis { get; set; }
     }
 }

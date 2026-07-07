@@ -58,6 +58,8 @@ namespace Persistence.Services
 
             var json = await response.Content.ReadAsStringAsync();
 
+
+
             return ParseReport(json);
         }
 

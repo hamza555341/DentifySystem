@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Presentation.Controllers;
 using Shared.DTOs.ChatBot;
 using System.Net.Http.Json;
+using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -23,15 +24,21 @@ public class ChatBotController : ApiBaseController
     public async Task<IActionResult> Ask([FromBody] ChatBotRequestDTO request)
     {
         var aiServiceUrl = _configuration["AIServiceChatBot:BaseUrl"];
+        var sessionId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         var response = await _httpClient.PostAsJsonAsync($"{aiServiceUrl}/chat", new
         {
             question = request.Question,
-            history = request.History ?? ""
+            history = request.History ?? "",
+            session_id = sessionId
         });
 
         if (!response.IsSuccessStatusCode)
-            return StatusCode(500, "AI Service error");
+        {
+            var error = await response.Content.ReadAsStringAsync();
+
+            return StatusCode((int)response.StatusCode, error);
+        }
 
         var result = await response.Content.ReadFromJsonAsync<ChatBotResponseDTO>();
         return Ok(result);
