@@ -52,7 +52,7 @@ namespace Service
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            return new CurrentUserDTO(user.Email!, user.DisplayName, roles.FirstOrDefault()!);         
+            return new CurrentUserDTO(user.Id, user.Email!, user.DisplayName, roles.FirstOrDefault()!);
         }
 
         public async Task<Result<UserDTO>> LoginAsyns(LoginDTO loginDto)

@@ -50,7 +50,7 @@ namespace Persistence.IdentityData.DataSeed
 
 
 
-                if (!_userManager.Users.Any())
+                if (await _userManager.FindByEmailAsync("Hamza44@gmail.com") is null)
                 {
                     var adminUser = new ApplicationUser()
                     {
