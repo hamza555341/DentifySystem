@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Abstraction;
+using Shared.DTOs.StudentDTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,13 +22,15 @@ namespace Presentation.Controllers
 
         [HttpGet("available-students")]
         [Authorize(Roles = "Patient")]
-        public async Task<IActionResult> GetAvailableStudents()
+        public async Task<ActionResult<IEnumerable<StudentResponseDTO>>> GetAvailableStudents(
+         int caseId, [FromQuery] string? universityName = null)
         {
             var identityUserId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var result = await _patientService.GetAvailableStudentsAsync( identityUserId);
-            return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
-        }
+            var result = await _patientService
+                .GetAvailableStudentsAsync(caseId, identityUserId, universityName);
 
+            return HandleResult(result);
+        }
         [HttpGet("students/{studentId}")]
         [Authorize(Roles = "Patient")]
         public async Task<IActionResult> GetStudentById(int studentId)
@@ -35,5 +38,7 @@ namespace Presentation.Controllers
             var result = await _patientService.GetStudentByIdAsync(studentId);
             return result.IsSuccess ? Ok(result.Value) : BadRequest(result.Errors);
         }
+
+
     }
 }

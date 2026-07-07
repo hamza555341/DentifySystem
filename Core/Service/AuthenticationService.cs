@@ -116,7 +116,7 @@ namespace Service
 
             var student = new Student
             {
-                City = dto.City,
+                UniversityName = dto.UniversityName ,
                 UniEmail = dto.UniEmail,
                 IsActive = true,
                 IdentityUserId = user.Id,
@@ -206,8 +206,7 @@ namespace Service
             await _userManager.AddToRoleAsync(user, "Patient");
 
             var patient = new Patient
-            {
-                City = dto.City,               
+            {      
                 IdentityUserId = user.Id,
                 CreatedAt = DateTime.UtcNow,
                 age=dto.age

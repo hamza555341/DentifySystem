@@ -9,14 +9,15 @@ using System.Threading.Tasks;
 namespace Shared.DTOs.IdentityDtos
 {
     public record RegisterStudentDTO(
+
+      string UserName,
      [EmailAddress] string Email,
       string Password,
       string FullName,
      [Phone] string PhoneNumber,
-      string City,
-
+      string UniversityName,
       string UniEmail,
-
       List<Specialization> Specializations
+
   );
 }

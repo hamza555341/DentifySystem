@@ -14,16 +14,10 @@ namespace Domain.Entites.PatientModule
         public string IdentityUserId { get; set; } = null!;
         public int age { get; set; }
 
-
-        public string City { get; set; } = null!;
-
-        public string? ProfileImageUrl { get; set; }
-
         public ICollection<Case> Cases { get; set; } = new List<Case>();
         public ApplicationUser ApplicationUser { get; set; } = null!;
 
         public ICollection<StudentRating> Ratings { get; set; } = new List<StudentRating>();
-
 
 
     }

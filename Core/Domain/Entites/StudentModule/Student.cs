@@ -14,7 +14,7 @@ namespace Domain.Entites.StudentModule
     {
         public string IdentityUserId { get; set; } = null!;
         public bool IsActive { get; set; } = true;
-        public string City { get; set; } = null!;
+        public string UniversityName { get; set; } = null!;
         public string UniEmail { get; set; } = null!;
         public string? ProfileImageUrl { get; set; }
 

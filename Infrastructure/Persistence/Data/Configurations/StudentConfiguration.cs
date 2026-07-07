@@ -26,7 +26,7 @@ namespace Persistence.Data.Configurations
             // =============================
             // Properties
             // =============================
-            builder.Property(s => s.City)
+            builder.Property(s => s.UniversityName)
                    .IsRequired()
                    .HasMaxLength(200);
 

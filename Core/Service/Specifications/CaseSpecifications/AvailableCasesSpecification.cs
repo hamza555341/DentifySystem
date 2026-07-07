@@ -8,8 +8,8 @@ namespace Service.Specifications.CaseSpecifications
     {
         public AvailableCasesSpecification(string? city, Specialization specialization )
          : base(c => 
-                     !c.TreatmentRequests.Any(r => r.Status == TreatmentRequestStatus.Accepted) && c.Status != CaseStatus.Expired  &&
-                     (string.IsNullOrEmpty(city) || c.City.ToLower() == city!.ToLower()) &&
+                     !c.TreatmentRequests.Any(r => r.Status == TreatmentRequestStatus.Accepted) &&
+                     (city == null || c.City == city) &&
                      ( specialization.HasFlag(c.RequiredSpecialization)))
         {
             AddInclude(c => c.Patient.ApplicationUser);

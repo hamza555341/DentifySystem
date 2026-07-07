@@ -23,86 +23,166 @@ namespace Service
         private readonly IUnitOfWork _unitOfWork;
         private readonly IAttachmentService _attachmentService;
         private readonly IMapper _mapper;
+        private readonly IAiDiagnosisService  _aiService;
         private readonly IConfiguration _configuration;
 
         public CaseService(IUnitOfWork unitOfWork,
-            IAttachmentService attachmentService, IMapper mapper,IConfiguration configuration)
+            IAttachmentService attachmentService, IMapper mapper,IConfiguration configuration,
+           IAiDiagnosisService aiService)
         {
             _unitOfWork = unitOfWork;
             _attachmentService = attachmentService;
             _mapper = mapper;
+            _aiService = aiService;
             _configuration = configuration;
         }
 
         #region paitient
         public async Task<Result<CaseResponseDTO>> CreateCaseAsync(string userId, CreateCaseDTO dto)
         {
+            //      var patient = await _unitOfWork.GetRepository<Patient, int>()
+            //          .GetByIdAsync(new PatientByUserIdSpecification(userId));
+
+            //      if (patient is null) 
+            //      { 
+            //          return Error.NotFound("Patient.NotFound");
+            //      }
+
+            //      var hasActiveCase = await _unitOfWork.GetRepository<Case, int>()
+            //          .GetAllAsync(new PatientActiveCaseSpecification(patient!.Id));
+
+            //      if (hasActiveCase.Any())
+            //          return Error.Validation("Case.ActiveExists", "You already have an Pending case");
+
+            //      if (dto.Image is null)
+            //          return Error.Validation(
+            //              "Image.Required",
+            //              "Image is required");
+
+            //      var imagePath = await _attachmentService
+            //          .UploadAsync("cases", dto.Image);
+
+            //      if (imagePath is null)
+            //          return Error.Validation(
+            //              "Image.Invalid",
+            //              "Invalid image");
+            //      var caseEntity = new Case
+            //      {
+            //          PatientId = patient.Id,
+            ////          RequiredSpecialization = dto.RequiredSpecialization,
+            ////         Description = dto.Description,
+            //          City = dto.City,
+            //          Status = CaseStatus.Pending,
+            //          CreatedAt = DateTime.UtcNow,
+            //          ImageUrl = imagePath
+            //      };
+
+            //      await _unitOfWork.GetRepository<Case, int>().AddAsync(caseEntity);
+            //      await _unitOfWork.SaveChangesAsync();
+
+            //      var result = await _unitOfWork.GetRepository<Case, int>()
+            //          .GetByIdAsync(new CaseWithImagesSpecification(caseEntity.Id));
+
+
+            //      var dtoResult = _mapper.Map<CaseResponseDTO>(result);
+
+            //      dtoResult.Image =
+            //          $"{_configuration["URLs:BaseURL"]}{result!.ImageUrl}";
+
+            //      return Result<CaseResponseDTO>.Ok(dtoResult);
+
+            // 1. جيب المريض
             var patient = await _unitOfWork.GetRepository<Patient, int>()
                 .GetByIdAsync(new PatientByUserIdSpecification(userId));
 
-            if (patient is null) 
-            { 
+            if (patient is null)
                 return Error.NotFound("Patient.NotFound");
-            }
 
+            // 2. تأكد مفيش case active
             var hasActiveCase = await _unitOfWork.GetRepository<Case, int>()
-                .GetAllAsync(new PatientActiveCaseSpecification(patient!.Id));
+                .GetAllAsync(new PatientActiveCaseSpecification(patient.Id));
 
             if (hasActiveCase.Any())
-                return Error.Validation("Case.ActiveExists", "You already have an Pending case");
+                return Error.Validation("Case.ActiveExists",
+                    "You already have an active case");
 
-            if (dto.Image is null)
-                return Error.Validation(
-                    "Image.Required",
-                    "Image is required");
+            // 3. تأكد إن فيه صورة أو تيكست
+            if (dto.Image is null && string.IsNullOrWhiteSpace(dto.SymptomsText))
+                return Error.Validation("Input.Required",
+                    "Please provide an image or describe your symptoms");
 
-            var imagePath = await _attachmentService
-                .UploadAsync("cases", dto.Image);
+            // 4. كلم الـ AI
+            AiResult aiResult;
 
-            if (imagePath is null)
-                return Error.Validation(
-                    "Image.Invalid",
-                    "Invalid image");
+            if (dto.Image is not null)
+            {
+                aiResult = await _aiService.AnalyzeImageAsync(
+                    dto.Image,
+                    dto.PainDuration,
+                    dto.ChronicDiseases);
+            }
+            else
+            {
+                aiResult = await _aiService.AnalyzeTextAsync(dto.SymptomsText!);
+            }
+
+            // 5. صورة مش أسنان
+            if (!aiResult.IsValidDentalImage)
+                return Error.Validation("Image.Invalid",
+                    "Please upload a clear dental image");
+
+            // 6. أسنان سليمة — عرض التقرير بس بدون إنشاء Case
+            if (aiResult.IsHealthy)
+                return Error.Validation("Case.Healthy",
+                    aiResult.FullReport);
+
+            // 7. حدد الـ Specialization
+            var specialization = MapDiagnosis(aiResult.Diagnosis!);
+
+            if (specialization == Specialization.None)
+                return Error.Validation("Diagnosis.Unsupported",
+                    "Could not determine the required specialization");
+
+            // 8. رفع الصورة لو موجودة
+            string? imagePath = null;
+
+            if (dto.Image is not null)
+            {
+                imagePath = await _attachmentService
+                    .UploadAsync("cases", dto.Image);
+
+                if (imagePath is null)
+                    return Error.Validation("Image.UploadFailed",
+                        "Failed to upload image");
+            }
+
+            // 9. إنشاء الـ Case
             var caseEntity = new Case
             {
                 PatientId = patient.Id,
-                RequiredSpecialization = dto.RequiredSpecialization,
-                Description = dto.Description,
+                RequiredSpecialization = specialization,
+    //            Description = dto.Description,
                 City = dto.City,
                 Status = CaseStatus.Pending,
                 CreatedAt = DateTime.UtcNow,
-                ImageUrl = imagePath
+                ImageUrl = imagePath ?? string.Empty,
+                AiAnalysisResult = aiResult.FullReport
             };
 
             await _unitOfWork.GetRepository<Case, int>().AddAsync(caseEntity);
             await _unitOfWork.SaveChangesAsync();
 
-            //foreach (var file in dto.Images)
-            //{
-            //    var path = await _attachmentService.UploadAsync("cases", file);
-            //    if (path is null) continue;
-
-            //    await _unitOfWork.GetRepository<CaseImage, int>().AddAsync(new CaseImage
-            //    {
-            //        CaseId = caseEntity.Id,
-            //        ImageUrl = path,
-            //        ImageType = "fsdfsdf"
-            //    });
-            //}
-
             var result = await _unitOfWork.GetRepository<Case, int>()
                 .GetByIdAsync(new CaseWithImagesSpecification(caseEntity.Id));
 
+            var dtoResult = _mapper.Map<CaseResponseDTO>(result!);
 
-            var dtoResult = _mapper.Map<CaseResponseDTO>(result);
-
-            dtoResult.Image =
-                $"{_configuration["URLs:BaseURL"]}{result!.ImageUrl}";
+            if (!string.IsNullOrEmpty(result!.ImageUrl))
+                dtoResult.Image = $"{_configuration["URLs:BaseURL"]}{result.ImageUrl}";
 
             return Result<CaseResponseDTO>.Ok(dtoResult);
 
         }
-
 
         public async Task<Result<IEnumerable<CaseResponseDTO>>> GetAvailableCasesAsync(string? city, string identityUserId)
         {
@@ -194,8 +274,7 @@ namespace Service
             if (case0 is null) return Error.NotFound("Case.NotFound");
             if (case0.Status != CaseStatus.Pending)
                 return Error.Validation("Case.NotEditable", "Only pending cases can be edited");
-            if (!string.IsNullOrEmpty(dto.Description) && dto.Description != "string")
-                case0.Description = dto.Description;
+
             if (!string.IsNullOrEmpty(dto.City) && dto.City != "string")
                 case0.City = dto.City;
            case0.RequiredSpecialization = dto.RequiredSpecialization;
@@ -223,7 +302,30 @@ namespace Service
         }
 
 
+        private Specialization MapDiagnosis(string diagnosis)
+        {
+            if (diagnosis.Contains("Dental Caries") ||
+                diagnosis.Contains("تسوس"))
+                return Specialization.DentalCaries;
 
+            if (diagnosis.Contains("Periodontal") ||
+                diagnosis.Contains("لثة"))
+                return Specialization.PeriodontalDiseas;
+
+            if (diagnosis.Contains("Hypodontia") ||
+                diagnosis.Contains("فقدان"))
+                return Specialization.Hypodontia;
+
+            if (diagnosis.Contains("Mouth Ulcer") ||
+                diagnosis.Contains("قرحة"))
+                return Specialization.MouthUlcer;
+
+            if (diagnosis.Contains("Tooth Discoloration") ||
+                diagnosis.Contains("تغير لون"))
+                return Specialization.ToothDiscoloration;
+
+            return Specialization.None;
+        }
 
 
 

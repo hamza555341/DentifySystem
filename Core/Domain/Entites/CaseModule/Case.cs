@@ -17,8 +17,6 @@ namespace Domain.Entites.CaseModule
 
         public Specialization RequiredSpecialization { get; set; }
 
-        public string Description { get; set; } = null!;
-
         public string City { get; set; } = null!;
 
         public CaseStatus Status { get; set; } = CaseStatus.Pending;
@@ -26,8 +24,6 @@ namespace Domain.Entites.CaseModule
         public string? AiAnalysisResult { get; set; }
 
         public Patient Patient { get; set; } = null!;
-
-        //public ICollection<CaseImage> Images { get; set; } = new List<CaseImage>();
         public string ImageUrl { get; set; } = null!;
 
         public DateTime? LastUpdatedAt { get; set; }

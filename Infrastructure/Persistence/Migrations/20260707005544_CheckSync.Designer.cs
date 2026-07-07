@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistence.DbContexts;
 
@@ -11,9 +12,11 @@ using Persistence.DbContexts;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(DentifyDbContext))]
-    partial class DentifyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260707005544_CheckSync")]
+    partial class CheckSync
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -134,7 +137,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("TreatmentRequestId");
 
-                    b.ToTable("ChatMessages", (string)null);
+                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("Domain.Entites.IdentityModule.ApplicationUser", b =>
@@ -443,7 +446,7 @@ namespace Persistence.Migrations
 
                     b.HasIndex("StudentId");
 
-                    b.ToTable("TreatmentRequests", (string)null);
+                    b.ToTable("TreatmentRequests");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

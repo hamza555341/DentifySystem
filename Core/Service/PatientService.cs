@@ -26,7 +26,8 @@ namespace Service
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
-        public async Task<Result<IEnumerable<StudentResponseDTO>>> GetAvailableStudentsAsync(string identityUserId)
+        public async Task<Result<IEnumerable<StudentResponseDTO>>> GetAvailableStudentsAsync(
+           int caseId, string identityUserId, string? universityName = null)
         {
             var patient = await _unitOfWork.GetRepository<Patient, int>()
                 .GetByIdAsync(new PatientByUserIdSpecification(identityUserId));
@@ -34,17 +35,22 @@ namespace Service
             if (patient is null)
                 return Error.NotFound("Patient.NotFound");
 
-            var case_ = await _unitOfWork.GetRepository<Case, int>()
-                .GetByIdAsync(new PatientActiveCaseSpecification(patient.Id));
+            var caseEntity = await _unitOfWork.GetRepository<Case, int>()
+                .GetByIdAsync(new CaseWithImagesSpecification(caseId));
 
-            if (case_ is null)
+            if (caseEntity is null)
                 return Error.NotFound("Case.NotFound");
 
-            var students = await _unitOfWork.GetRepository<Student, int>()
-                .GetAllAsync(new AvailableStudentsByCaseSpecification( case_.Id,case_.RequiredSpecialization));
+            if (caseEntity.PatientId != patient.Id)
+                return Error.Unauthorized("Case.Unauthorized");
 
-            var result = _mapper.Map<IEnumerable<StudentResponseDTO>>(students);
-            return Result<IEnumerable<StudentResponseDTO>>.Ok(result);
+            var students = await _unitOfWork.GetRepository<Student, int>()
+                .GetAllAsync(new AvailableStudentsByCaseSpecification(
+                    caseEntity.RequiredSpecialization,
+                    universityName));
+
+            return Result<IEnumerable<StudentResponseDTO>>.Ok(
+                _mapper.Map<IEnumerable<StudentResponseDTO>>(students));
         }
 
         public async Task<Result<StudentResponseDTO>> GetStudentByIdAsync(int studentId)
@@ -58,7 +64,5 @@ namespace Service
             var result = _mapper.Map<StudentResponseDTO>(student);
             return Result<StudentResponseDTO>.Ok(result);
         }
-
-
     }
 }

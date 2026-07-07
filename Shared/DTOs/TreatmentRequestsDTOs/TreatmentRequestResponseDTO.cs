@@ -12,7 +12,7 @@ namespace Shared.DTOs.TreatmentRequestsDTOs
         public int CaseId { get; set; }
         public int StudentId { get; set; }
         public string StudentName { get; set; } = null!;
-        public string StudentCity { get; set; } = null!;
+        public string StudentUniversityName { get; set; } = null!;
         public string StudentPhoneNumber { get; set; } = null!;
         public string? StudentProfileImageUrl { get; set; }
         public double AverageRating { get; set; }
