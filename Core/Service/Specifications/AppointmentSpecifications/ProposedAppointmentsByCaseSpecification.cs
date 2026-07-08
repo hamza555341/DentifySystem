@@ -12,8 +12,7 @@ namespace Service.Specifications.AppointmentSpecifications
     {
         public ProposedAppointmentsByRequestSpecification(int requestId)
             : base(a =>
-                a.TreatmentRequestId == requestId &&
-                a.Status == AppointmentStatus.proposed
+                a.TreatmentRequestId == requestId 
             )
         {
             AddInclude(a => a.TreatmentRequest);

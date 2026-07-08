@@ -28,15 +28,18 @@ namespace Service
 
         public async Task AutoCompleteAppointmentAsync(int appointmentId)
         {
-            var repo = _unitOfWork.GetRepository<Appointment, int>();
-            var appointment = await repo.GetByIdAsync(appointmentId);
+            var appointment = await _unitOfWork.GetRepository<Appointment, int>()
+                .GetByIdAsync(new AppointmentWithRequestSpecification(appointmentId));
+            //               ↑ لازم تبقى Specification مش appointmentId بس
 
             if (appointment is null) return;
 
             if (appointment.Status == AppointmentStatus.Confirmed)
             {
                 appointment.Status = AppointmentStatus.Completed;
-                repo.Update(appointment);
+                appointment.TreatmentRequest.Case.Status = CaseStatus.Completed;
+
+                _unitOfWork.GetRepository<Appointment, int>().Update(appointment);
                 await _unitOfWork.SaveChangesAsync();
             }
         }
@@ -106,7 +109,7 @@ namespace Service
                 TreatmentRequestId = request.Id,
                 AppointmentDate = dto.AppointmentDate,
                 Location = dto.Location,
-                Status = AppointmentStatus.proposed
+                Status = AppointmentStatus.Confirmed
             };
 
             await _unitOfWork.GetRepository<Appointment, int>().AddAsync(appointment);
@@ -135,9 +138,6 @@ namespace Service
 
             if (appointment is null)
                 return Error.NotFound("Appointment.NotFound");
-
-            if (appointment.Status != AppointmentStatus.proposed)
-                return Error.Validation("Appointment.InvalidStatus");
 
             if (appointment.TreatmentRequest.Case.PatientId != patient.Id)
                 return Error.Unauthorized("Access.Denied");
