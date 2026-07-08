@@ -16,7 +16,7 @@ namespace Domain.Entites.AppointmentModule
 
         public DateTimeOffset AppointmentDate { get; set; }
 
-        public AppointmentStatus Status { get; set; } =AppointmentStatus.proposed;
+        public AppointmentStatus Status { get; set; } 
 
         public string Location { get; set; } = null!;
 

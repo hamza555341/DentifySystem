@@ -13,7 +13,7 @@ namespace Service.Specifications.AppointmentSpecifications
         public ActiveAppointmentsByRequestSpecification(int requestId)
             : base(a =>
                 a.TreatmentRequestId == requestId &&
-                (a.Status == AppointmentStatus.proposed ||
+                (
                  a.Status == AppointmentStatus.Confirmed)
             )
         {
